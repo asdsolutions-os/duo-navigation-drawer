@@ -104,7 +104,7 @@ drawerLayout.setDrawerListener(drawerToggle);
 drawerToggle.syncState();
 ```
 
-### 4. Customize the SlidingDrawerLayout
+### 4. Customize the DuoDrawerLayout
 
 All values are `Float` values. The default values are used in the example.
 
