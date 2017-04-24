@@ -7,7 +7,7 @@ the Activity, this lets the content slide away and reveal a menu below it.
 By default it applies a scaling effect on the content and menu.
 
 ## Demo
-[![Demo CountPages alpha](https://share.gifyoutube.com/KzB6Gb.gif)](https://www.youtube.com/watch?v=ek1j272iAmc)
+[![Demo CountPages alpha](https://gifs.com/gif/vgyrrV)](https://www.youtube.com/watch?v=Batgo5dDxyw)
 
 The demo app is included in the `app` module in this project.
 
