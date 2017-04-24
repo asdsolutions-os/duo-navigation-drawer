@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 
-          package="nl.company.psd.duonavigationdrawer"
+          package="nl.psdcompany.psd.duonavigationdrawer"
 >
 
     <application android:allowBackup="true"

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <nl.company.psd.duonavigationdrawer.views.DuoDrawerLayout
+    <nl.psdcompany.duonavigationdrawer.views.DuoDrawerLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/drawer"
         android:layout_width="match_parent"

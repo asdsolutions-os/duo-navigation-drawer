@@ -4,7 +4,7 @@ android {
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
     defaultConfig {
-        applicationId "nl.company.psd.duonavigationdrawer.example"
+        applicationId "nl.psdcompany.duonavigationdrawer.example"
         minSdkVersion 15
         targetSdkVersion 25
         versionCode 1

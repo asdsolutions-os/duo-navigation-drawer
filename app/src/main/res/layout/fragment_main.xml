@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="nl.company.psd.navigationdrawer.nl.company.psd.duonavigationdrawer.example.MainFragment">
+    tools:context="nl.psdcompany.psd.navigationdrawer.nl.company.psd.duonavigationdrawer.example.MainFragment">
 
     <TextView
         android:id="@+id/text"
