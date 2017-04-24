@@ -130,7 +130,7 @@ app:menuAlphaOpen="1.0"
 ```
 
 #### Content margin factor
-This value is used to calculate how much of the content should be visible when the content is slided to the right. This is calculated with the width of the `SlidingDrawerLayoutWhen`: `getWidth * marginFactor`. So setting this to 1.0f will slide the content out of the activity. The default is 0.7f.
+This value is used to calculate how much of the content should be visible when the content is slided to the right. This is calculated with the width of the `DuoDrawerLayout` when: `getWidth * marginFactor`. So setting this to 1.0f will slide the content out of the activity. The default is 0.7f.
 
 ```xml
 app:marginFactor="0.7"
