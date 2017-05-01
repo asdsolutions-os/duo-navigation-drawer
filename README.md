@@ -18,7 +18,7 @@ Add the dependency to your Gradle file:
 ```
 dependencies {
     ...
-    compile 'nl.psdcompany:duo-navigation-drawer:1.0.0'
+    compile 'nl.psdcompany:duo-navigation-drawer:1.0.1'
 }
 ```
 
