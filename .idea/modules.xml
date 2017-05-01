@@ -4,7 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Example.iml" filepath="$PROJECT_DIR$/Example.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/duonavigationdrawer/duonavigationdrawer.iml" filepath="$PROJECT_DIR$/duonavigationdrawer/duonavigationdrawer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/duo-navigation-drawer/duo-navigation-drawer.iml" filepath="$PROJECT_DIR$/duo-navigation-drawer/duo-navigation-drawer.iml" />
     </modules>
   </component>
 </project>

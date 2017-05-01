@@ -1,16 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<nl.psdcompany.duonavigationdrawer.views.DuoDrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drawer"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
-    <nl.psdcompany.duonavigationdrawer.views.DuoDrawerLayout
+    <nl.psdcompany.duonavigationdrawer.views.DuoMenuView
         xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/drawer"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:content="@layout/content"
-        app:menu="@layout/menu"/>
-</LinearLayout>
+        android:orientation="vertical"
+        android:tag="@string/tag_menu"
+        app:footer="@layout/view_footer"
+        app:header="@layout/view_header"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:tag="@string/tag_content">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/colorPrimary"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+
+        <FrameLayout
+            android:id="@+id/container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/white"/>
+    </LinearLayout>
+
+</nl.psdcompany.duonavigationdrawer.views.DuoDrawerLayout>
