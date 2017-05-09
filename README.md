@@ -125,7 +125,7 @@ drawerToggle.syncState();
 
 ### Using the `DuoMenuView`
 
-If you want to your `menu` to look like the demo. you should consider using the `DuoMenuView` For more info using the `DuoMenuView` click [here]().
+If you want to your `menu` to look like the demo. you should consider using the `DuoMenuView` For more info using the `DuoMenuView` click [here](https://github.com/PSD-Company/duo-navigation-drawer/blob/master/dev/MENU_VIEW.md).
 
 ### Effects
 
