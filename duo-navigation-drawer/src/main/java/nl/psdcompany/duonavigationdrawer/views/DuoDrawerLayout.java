@@ -816,6 +816,9 @@ public class DuoDrawerLayout extends RelativeLayout {
         public void onViewDragStateChanged(int state) {
             super.onViewDragStateChanged(state);
 
+            mDraggedXOffset = mContentView.getLeft();
+            mDraggedYOffset = mContentView.getTop();
+
             if (state == STATE_IDLE) {
                 if (mDragOffset == 0) {
                     if (mDrawerListener != null) {
