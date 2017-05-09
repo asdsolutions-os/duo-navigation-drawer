@@ -11,86 +11,103 @@ By default it applies a scaling effect on the content and menu.
 
 The demo app is included in the `app` module in this project.
 
-## Usage
+## Getting Started
 
-### 1. Include the library
-Add the dependency to your Gradle file:
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+
+### Prerequisites
+
+You can download a jar from GitHub's releases page.
+
+Or use Gradle:
+
 ```
+repositories {
+    mavenCentral() // jcenter() works as well because it pulls from Maven Central
+}
+
 dependencies {
-    ...
     compile 'nl.psdcompany:duo-navigation-drawer:1.0.3'
 }
 ```
 
-### 2. Add the `DuoNavigationDrawer` view
+Or Maven:
 
-1. Add a `DuoNavigationDrawer` to your Activity.
-
-There are two options for custimization of the `DuoNavigationDrawer`. The first option is to customize the layout by adding attributes to the `DuoNavigationDrawer`. The second option is to customize the layout by adding views inside the `DuoNavigationDrawer`. These views need to contain tags in order to be noticed by the menu.
-
-#### Option 1
-2. Add the app:content attribute corresponding to your content layout.
-3. Add the app:menu attribute corresponding to your menu layout.
-
-```xml
-<nl.psdcompany.duonavigationdrawer.views.DuoDrawerLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/drawer"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    app:content="@layout/content"
-    app:menu="@layout/menu"/>
+```
+<dependency>
+  <groupId>nl.psdcompany</groupId>
+  <artifactId>duo-navigation-drawer</artifactId>
+  <version>1.0.3</version>
+  <type>pom</type>
+</dependency>
 ```
 
-#### Option 2
+### Installing
 
-2. Add a View which contains your menu. Give this the tag `menu`.
-3. Add a View which contains your content. Give this the tag `content`.
+
+#### 1. Add the `DuoNavigationDrawer` view to your activity
+```xml
+<nl.psdcompany.duonavigationdrawer.views.DuoDrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    ... />
+```
+
+#### 2. Add the `content view` view to your `drawer`
+Add the a content view to your drawer by adding the attribute: `app:content` to your drawer.
 
 ```xml
 <nl.psdcompany.duonavigationdrawer.views.DuoDrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/drawer"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    app:content="@layout/content"
+    ... />
+```
 
-    <nl.psdcompany.duonavigationdrawer.views.DuoMenuView
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:tag="@string/tag_menu"
-        app:footer="@layout/view_footer"
-        app:header="@layout/view_header"/>
+or, you can also add a view within the drawer with the tag `content`.
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:tag="@string/tag_content">
-
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/colorPrimary"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
-
-        <FrameLayout
-            android:id="@+id/container"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@android:color/white"/>
-    </LinearLayout>
+```xml
+<nl.psdcompany.duonavigationdrawer.views.DuoDrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    ... >
     
+    <FrameLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:tag="content"
+        ... />
+
 </nl.psdcompany.duonavigationdrawer.views.DuoDrawerLayout>
 ```
 
-### 3. Initialize the drawer view
+#### 3. Add the `menu view` view to your `drawer`
+Add the a content view to your drawer by adding the attribute: `app:menu` to your drawer.
+
+```xml
+<nl.psdcompany.duonavigationdrawer.views.DuoDrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    app:menu="@layout/menu"
+    ... />
+```
+
+or, you can also add a view within the drawer with the tag `menu`.
+
+```xml
+<nl.psdcompany.duonavigationdrawer.views.DuoDrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    ... >
+    
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:tag="menu"
+        ... />
+
+</nl.psdcompany.duonavigationdrawer.views.DuoDrawerLayout>
+```
+
+#### 4. Initialize the drawer view
 
 The API of the `DuoNavigationDrawer` is mostly the same as the original `DrawerLayout` from the Android design library. Same for `DuoDrawerToggle` which is a modified version of the `ActionBarDrawerToggle` to support the `DuoDrawerLayout`.
 
@@ -104,7 +121,13 @@ drawerLayout.setDrawerListener(drawerToggle);
 drawerToggle.syncState();
 ```
 
-### 4. Customize the DuoDrawerLayout
+## Customization
+
+### Using the `DuoMenuView`
+
+If you want to your `menu` to look like the demo. you should consider using the `DuoMenuView` For more info using the `DuoMenuView` click [here]().
+
+### Effects
 
 All values are `Float` values. The default values are used in the example.
 

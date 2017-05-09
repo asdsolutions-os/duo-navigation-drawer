@@ -321,28 +321,12 @@ public class DuoDrawerLayout extends RelativeLayout {
         layoutParams.addRule(CENTER_VERTICAL, RelativeLayout.TRUE);
         addView(touchInterceptor, layoutParams);
         touchInterceptor.setTag(TAG_OVERLAY);
-        touchInterceptor.setOnTouchListener(new OnTouchListener() {
-            private long mStartClickTime;
-
+        touchInterceptor.setOnClickListener(new OnClickListener() {
             @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN: {
-                        mStartClickTime = Calendar.getInstance().getTimeInMillis();
-                        break;
-                    }
-                    case MotionEvent.ACTION_UP: {
-                        long clickDuration = Calendar.getInstance().getTimeInMillis() - mStartClickTime;
-                        if (clickDuration < 200 && mDragOffset == 1) {
-                            DuoDrawerLayout.this.closeDrawer();
-                            return false;
-                        }
-                    }
-                }
-                return true;
+            public void onClick(View v) {
+                DuoDrawerLayout.this.closeDrawer();
             }
         });
-
         setTouchInterceptorEnabled(isDrawerOpen());
     }
 
