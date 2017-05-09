@@ -81,7 +81,10 @@ public class DuoDrawerLayout extends RelativeLayout {
     private float mMenuAlphaClosed = MENU_ALPHA_CLOSED;
     private float mMenuAlphaOpen = MENU_ALPHA_OPEN;
     private float mMarginFactor = MARGIN_FACTOR;
+
     private float mDragOffset;
+    private float mDraggedXOffset;
+    private float mDraggedYOffset;
 
     private boolean mIsSwipeEnabled = true;
     private boolean mIsOnTouchCloseEnabled = true;
@@ -156,6 +159,15 @@ public class DuoDrawerLayout extends RelativeLayout {
         super.onFinishInflate();
         handleViews();
     }
+
+    @Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        super.onLayout(changed, l, t, r, b);
+
+        mContentView.offsetLeftAndRight((int) mDraggedXOffset);
+        mContentView.offsetTopAndBottom((int) mDraggedYOffset);
+    }
+
 
     /**
      * Checks if it can find the menu & content views with their tags.
@@ -259,6 +271,9 @@ public class DuoDrawerLayout extends RelativeLayout {
         super.computeScroll();
         if (mViewDragHelper.continueSettling(true)) {
             ViewCompat.postInvalidateOnAnimation(this);
+        } else {
+            mDraggedXOffset = mContentView.getLeft();
+            mDraggedYOffset = mContentView.getTop();
         }
     }
 
