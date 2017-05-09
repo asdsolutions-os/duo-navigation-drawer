@@ -7,7 +7,7 @@ the Activity, this lets the content slide away and reveal a menu below it.
 By default it applies a scaling effect on the content and menu.
 
 ## Demo
-[![Demo CountPages alpha](https://j.gifs.com/vgyrrV.gif)](https://www.youtube.com/watch?v=Batgo5dDxyw)
+[![Demo CountPages alpha](https://j.gifs.com/vgyrrV.gif)][2]
 
 The demo app is included in the `app` module in this project.
 
@@ -17,11 +17,11 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-You can download a jar from GitHub's releases page.
+You can download a jar from GitHub's [releases page][1].
 
 Or use Gradle:
 
-```
+```gradle
 repositories {
     mavenCentral() // jcenter() works as well because it pulls from Maven Central
 }
@@ -33,7 +33,7 @@ dependencies {
 
 Or Maven:
 
-```
+```xml
 <dependency>
   <groupId>nl.psdcompany</groupId>
   <artifactId>duo-navigation-drawer</artifactId>
@@ -125,7 +125,7 @@ drawerToggle.syncState();
 
 ### Using the `DuoMenuView`
 
-If you want to your `menu` to look like the demo. you should consider using the `DuoMenuView` For more info using the `DuoMenuView` click [here]().
+If you want to your `menu` to look like the demo. you should consider using the `DuoMenuView` For more info using the `DuoMenuView` click [here][3].
 
 ### Effects
 
@@ -158,3 +158,8 @@ This value is used to calculate how much of the content should be visible when t
 ```xml
 app:marginFactor="0.7"
 ```
+
+
+[1]: https://github.com/bumptech/glide/releases
+[2]: https://www.youtube.com/watch?v=Batgo5dDxyw
+[3]: https://github.com/PSD-Company/duo-navigation-drawer/blob/master/dev/MENU_VIEW.md
