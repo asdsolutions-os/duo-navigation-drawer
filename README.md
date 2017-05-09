@@ -160,6 +160,6 @@ app:marginFactor="0.7"
 ```
 
 
-[1]: https://github.com/bumptech/glide/releases
+[1]: https://github.com/PSD-Company/duo-navigation-drawer/releases
 [2]: https://www.youtube.com/watch?v=Batgo5dDxyw
 [3]: https://github.com/PSD-Company/duo-navigation-drawer/blob/master/dev/MENU_VIEW.md
