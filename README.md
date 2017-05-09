@@ -27,7 +27,7 @@ repositories {
 }
 
 dependencies {
-    compile 'nl.psdcompany:duo-navigation-drawer:1.0.3'
+    compile 'nl.psdcompany:duo-navigation-drawer:1.1.0'
 }
 ```
 
@@ -37,7 +37,7 @@ Or Maven:
 <dependency>
   <groupId>nl.psdcompany</groupId>
   <artifactId>duo-navigation-drawer</artifactId>
-  <version>1.0.3</version>
+  <version>1.1.0</version>
   <type>pom</type>
 </dependency>
 ```
