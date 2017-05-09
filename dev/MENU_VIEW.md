@@ -1,6 +1,8 @@
 # Duo Menu View
 
-This `menu view` is made to recreate the [demo](https://www.youtube.com/watch?v=Batgo5dDxyw) more easely.
+This `menu view` is made to recreate the [demo][1] more easely.
+
+<img src="https://github.com/PSD-Company/duo-navigation-drawer/blob/master/dev/menuView.png" width="250">
 
 #### 1. Add the `DuoMenuView` to your `drawer`.
 ```xml
@@ -33,7 +35,7 @@ Add your own header and footer view to the `DuoMenuView` using the attributes `a
 
 #### 3. Initialize the `menu view`.
 
-Create your own [menu adapter](https://github.com/PSD-Company/duo-navigation-drawer/blob/master/app/src/main/java/nl/psdcompany/duonavigationdrawer/example/MenuAdapter.java) and initialize the `menu view`.
+Create your own [menu adapter][2] and initialize the `menu view`.
 
 ```Java
 DuoMenuView duoMenuView = (DuoMenuView) findViewById(R.id.menu);
@@ -75,4 +77,9 @@ duoMenuView.setOnMenuClickListener(new DuoMenuView.OnMenuClickListener() {
 ```
 
 #### 5. Using the `DuoOptionView` (Optional)
-Using the `DuoOptionView` to fill the `DuoMenuView`. You can see how it's used [here](https://github.com/PSD-Company/duo-navigation-drawer/blob/master/app/src/main/java/nl/psdcompany/duonavigationdrawer/example/MenuAdapter.java).
+Using the `DuoOptionView` to fill the `DuoMenuView`. You can see how it's used [here][2].
+
+<img src="https://github.com/PSD-Company/duo-navigation-drawer/blob/master/dev/optionViews.png" width="250">
+
+[1]: https://github.com/PSD-Company/duo-navigation-drawer/blob/master/README.md#demo
+[2]: https://github.com/PSD-Company/duo-navigation-drawer/blob/master/app/src/main/java/nl/psdcompany/duonavigationdrawer/example/MenuAdapter.java
