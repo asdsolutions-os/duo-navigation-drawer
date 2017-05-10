@@ -7,11 +7,13 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.IntDef;
 import android.support.annotation.LayoutRes;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ViewDragHelper;
 import android.support.v7.widget.Toolbar;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -22,7 +24,6 @@ import android.widget.RelativeLayout;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.Calendar;
 
 import nl.psdcompany.psd.duonavigationdrawer.R;
 
@@ -86,9 +87,10 @@ public class DuoDrawerLayout extends RelativeLayout {
     private float mDraggedXOffset;
     private float mDraggedYOffset;
 
-    private boolean mIsSwipeEnabled = true;
+    private boolean mIsEdgeDragEnabled = true;
     private boolean mIsOnTouchCloseEnabled = true;
-    private boolean mIsViewOnMoveEnabled = false;
+    private boolean mIsShadowEnabled = true;
+    private boolean mIsViewsEnabledOnMove = false;
 
     @LockMode
     private int mLockMode;
@@ -140,7 +142,6 @@ public class DuoDrawerLayout extends RelativeLayout {
 
         mLayoutInflater = LayoutInflater.from(getContext());
         mViewDragHelper = ViewDragHelper.create(this, 1.0f, new ViewDragCallback());
-        mViewDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_LEFT);
 
         setFocusableInTouchMode(true);
         requestFocus();
@@ -150,19 +151,19 @@ public class DuoDrawerLayout extends RelativeLayout {
         return (x - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
     }
 
-    /**
-     * Finalize inflating a view from XML.  This is called as the last phase
-     * of inflation, after all child views have been added.
-     */
-    @Override
-    protected void onFinishInflate() {
-        super.onFinishInflate();
-        handleViews();
-    }
-
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         super.onLayout(changed, l, t, r, b);
+        handleViews();
+
+        if (mIsEdgeDragEnabled) {
+            mViewDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_LEFT);
+        }
+        if (mIsShadowEnabled) {
+            addDropShadow();
+        }
+
+        addTouchInterceptor();
 
         mContentView.offsetLeftAndRight((int) mDraggedXOffset);
         mContentView.offsetTopAndBottom((int) mDraggedYOffset);
@@ -197,8 +198,6 @@ public class DuoDrawerLayout extends RelativeLayout {
         if (mContentView == null) {
             checkForContentAttribute();
         }
-
-        addTouchInterceptor();
     }
 
     /**
@@ -296,6 +295,20 @@ public class DuoDrawerLayout extends RelativeLayout {
     /**
      * Adds a touch interceptor to the layout
      */
+    private void addDropShadow() {
+        if (mContentView == null) {
+            mContentView = findViewWithTag(TAG_CONTENT);
+        }
+        TypedValue typedValue = new TypedValue();
+        getContext().getTheme().resolveAttribute(android.R.attr.colorBackground, typedValue, true);
+        mContentView.setBackgroundColor(ContextCompat.getColor(getContext(), typedValue.resourceId));
+        ViewCompat.setElevation(mContentView, 6);
+        ViewCompat.setTranslationZ(mContentView, 6);
+    }
+
+    /**
+     * Adds a touch interceptor to the layout
+     */
     private void addTouchInterceptor() {
         if (getWidth() == 0) {
             getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
@@ -324,7 +337,9 @@ public class DuoDrawerLayout extends RelativeLayout {
         touchInterceptor.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                DuoDrawerLayout.this.closeDrawer();
+                if (mIsOnTouchCloseEnabled) {
+                    DuoDrawerLayout.this.closeDrawer();
+                }
             }
         });
         setTouchInterceptorEnabled(isDrawerOpen());
@@ -339,15 +354,9 @@ public class DuoDrawerLayout extends RelativeLayout {
         View view = findViewWithTag(TAG_OVERLAY);
 
         if (view != null) {
-            if (mIsOnTouchCloseEnabled) {
-                if (enabled) {
-                    if (view.getVisibility() != VISIBLE) {
-                        view.setVisibility(VISIBLE);
-                    }
-                } else {
-                    if (view.getVisibility() != INVISIBLE) {
-                        view.setVisibility(INVISIBLE);
-                    }
+            if (enabled) {
+                if (view.getVisibility() != VISIBLE) {
+                    view.setVisibility(VISIBLE);
                 }
             } else {
                 if (view.getVisibility() != INVISIBLE) {
@@ -365,7 +374,7 @@ public class DuoDrawerLayout extends RelativeLayout {
      * @param enabled True or false, enabled/disabled
      */
     private void setViewAndChildrenEnabled(View view, boolean enabled) {
-        if (mIsViewOnMoveEnabled) {
+        if (mIsViewsEnabledOnMove) {
             return;
         }
         view.setEnabled(enabled);
@@ -480,17 +489,41 @@ public class DuoDrawerLayout extends RelativeLayout {
      *
      * @return true if the swipe feature is enabled.
      */
-    public boolean isSwipeEnabled() {
-        return mIsSwipeEnabled;
+    public boolean isEdgeDragEnabled() {
+        return mIsEdgeDragEnabled;
     }
 
     /**
      * Set the swipe feature enabled or disabled.
      *
-     * @param swipeEnabled Either true or false. Enabling/Disabling the swipe feature.
+     * @param edgeDragEnabled Either true or false. Enabling/Disabling the swipe feature.
      */
-    public void setSwipeEnabled(boolean swipeEnabled) {
-        mIsSwipeEnabled = swipeEnabled;
+    public void setEdgeDragEnabled(boolean edgeDragEnabled) {
+        mIsEdgeDragEnabled = edgeDragEnabled;
+        invalidate();
+        requestLayout();
+    }
+
+    /**
+     * Check if the shadow behind the content view is enabled. Enabled by default.
+     * Only works on API 21+.
+     *
+     * @return true if the swipe feature is enabled.
+     */
+    public boolean isShadowEnabled() {
+        return mIsShadowEnabled;
+    }
+
+    /**
+     * Set the shadow feature behind the content view enabled or disabled.
+     * Only works on API 21+.
+     *
+     * @param shadowEnabled Either true or false. Enabling/Disabling the shadow behind the content view.
+     */
+    public void setShadowEnabled(boolean shadowEnabled) {
+        mIsShadowEnabled = shadowEnabled;
+        invalidate();
+        requestLayout();
     }
 
     /**
@@ -509,6 +542,8 @@ public class DuoDrawerLayout extends RelativeLayout {
      */
     public void setOnTouchCloseEnabled(boolean enabled) {
         mIsOnTouchCloseEnabled = enabled;
+        invalidate();
+        requestLayout();
     }
 
     /**
@@ -517,8 +552,8 @@ public class DuoDrawerLayout extends RelativeLayout {
      *
      * @return false if the views should be disabled during move.
      */
-    public boolean isViewOnMoveEnabled() {
-        return mIsViewOnMoveEnabled;
+    public boolean isViewsEnabledOnMove() {
+        return mIsViewsEnabledOnMove;
     }
 
     /**
@@ -526,8 +561,14 @@ public class DuoDrawerLayout extends RelativeLayout {
      *
      * @param enabled Either true or false. Enabling/Disabling the views on move.
      */
-    public void setViewOnMoveEnabled(boolean enabled) {
-        mIsViewOnMoveEnabled = enabled;
+    public void setViewsEnabledOnMove(boolean enabled) {
+        mIsViewsEnabledOnMove = enabled;
+        if (enabled) {
+            setOnTouchCloseEnabled(false);
+        } else {
+            invalidate();
+            requestLayout();
+        }
     }
 
     /**
@@ -751,9 +792,7 @@ public class DuoDrawerLayout extends RelativeLayout {
 
         @Override
         public void onEdgeDragStarted(int edgeFlags, int pointerId) {
-            if (mIsSwipeEnabled) {
-                mViewDragHelper.captureChildView(mContentView, pointerId);
-            }
+            mViewDragHelper.captureChildView(mContentView, pointerId);
         }
 
         @Override
