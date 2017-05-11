@@ -6,7 +6,7 @@
     android:background="?attr/selectableItemBackground">
 
     <ImageView
-        android:id="@+id/view_option_selector_side"
+        android:id="@+id/view_option_side_selector"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/view_option_text_layout"
@@ -17,7 +17,7 @@
         android:id="@+id/view_option_text_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/view_option_selector_side"
+        android:layout_toRightOf="@+id/view_option_side_selector"
         android:padding="16dp">
 
         <ImageView

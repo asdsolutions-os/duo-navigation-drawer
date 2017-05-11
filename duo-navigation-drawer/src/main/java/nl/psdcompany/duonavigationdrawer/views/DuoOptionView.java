@@ -200,7 +200,7 @@ public class DuoOptionView extends RelativeLayout {
         OptionViewHolder(ViewGroup rootView) {
             mTextViewOption = (TextView) rootView.findViewById(R.id.view_option_text);
             mImageViewSelector = (ImageView) rootView.findViewById(R.id.view_option_selector);
-            mImageViewSelectorSide = (ImageView) rootView.findViewById(R.id.view_option_selector_side);
+            mImageViewSelectorSide = (ImageView) rootView.findViewById(R.id.view_option_side_selector);
 
             hideSelectorsByDefault();
         }
