@@ -1,11 +1,5 @@
 package nl.psdcompany.duonavigationdrawer.example;
 
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -18,11 +12,11 @@ import nl.psdcompany.duonavigationdrawer.views.DuoOptionView;
  * Created by PSD on 13-04-17.
  */
 
-public class MenuAdapter extends BaseAdapter {
+class MenuAdapter extends BaseAdapter {
     private ArrayList<String> mOptions = new ArrayList<>();
     private ArrayList<DuoOptionView> mOptionViews = new ArrayList<>();
 
-    public MenuAdapter(ArrayList<String> options) {
+    MenuAdapter(ArrayList<String> options) {
         mOptions = options;
     }
 
@@ -36,11 +30,10 @@ public class MenuAdapter extends BaseAdapter {
         return mOptions.get(position);
     }
 
-    public DuoOptionView getItemView(int position) {
-        return mOptionViews.get(position);
-    }
+    void setViewSelected(int position, boolean selected) {
 
-    public void setViewSelected(int position, boolean selected) {
+        // Looping through the options in the menu
+        // Selecting the chosen option
         for (int i = 0; i < mOptionViews.size(); i++) {
             if (i == position) {
                 mOptionViews.get(i).setSelected(selected);
@@ -48,7 +41,6 @@ public class MenuAdapter extends BaseAdapter {
                 mOptionViews.get(i).setSelected(!selected);
             }
         }
-
     }
 
     @Override
@@ -60,6 +52,7 @@ public class MenuAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         final String option = mOptions.get(position);
 
+        // Using the DuoOptionView to easily recreate the demo
         final DuoOptionView optionView;
         if (convertView == null) {
             optionView = new DuoOptionView(parent.getContext());
@@ -67,9 +60,12 @@ public class MenuAdapter extends BaseAdapter {
             optionView = (DuoOptionView) convertView;
         }
 
-        optionView.bind(option, ContextCompat.getDrawable(parent.getContext(), R.drawable.shape_circled_white));
+        // Using the DuoOptionView's default selectors
+        optionView.bind(option, null, null);
 
+        // Adding the views to an array list to handle view selection
         mOptionViews.add(optionView);
+
         return optionView;
     }
 }

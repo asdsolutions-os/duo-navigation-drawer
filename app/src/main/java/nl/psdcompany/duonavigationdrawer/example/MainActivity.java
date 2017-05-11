@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity implements DuoMenuView.OnMen
         // Handle drawer actions
         handleDrawer();
 
-        // Show empty fragment in container
+        // Show main fragment in container
         goToFragment(new MainFragment(), false);
         mMenuAdapter.setViewSelected(0, true);
         setTitle(mTitles.get(0));
@@ -84,9 +84,7 @@ public class MainActivity extends AppCompatActivity implements DuoMenuView.OnMen
             transaction.addToBackStack(null);
         }
 
-        transaction
-                .add(R.id.container, fragment)
-                .commit();
+        transaction.add(R.id.container, fragment).commit();
     }
 
     @Override

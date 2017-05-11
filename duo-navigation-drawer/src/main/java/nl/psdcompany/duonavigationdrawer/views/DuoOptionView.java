@@ -2,6 +2,7 @@ package nl.psdcompany.duonavigationdrawer.views;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -40,6 +41,13 @@ public class DuoOptionView extends RelativeLayout {
         ViewGroup rootView = (ViewGroup) inflate(getContext(), R.layout.view_option, this);
 
         mOptionViewHolder = new OptionViewHolder(rootView);
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        super.onLayout(changed, l, t, r, b);
+
+        setSelected(isSelected());
     }
 
     /**
@@ -142,9 +150,11 @@ public class DuoOptionView extends RelativeLayout {
      * Binds the option view with it's content
      *
      * @param optionText       Text to show as option in the menu.
-     * @param selectorDrawable Selector to show when option is selected. By default a white circle.
+     * @param selectorDrawable Selector to show when option is selected.
+     *                         Set to "null" to use it's default.
+     *                         By default it shows a white circle.
      */
-    public void bind(String optionText, Drawable selectorDrawable) {
+    public void bind(String optionText, @Nullable Drawable selectorDrawable) {
         mOptionViewHolder.mTextViewOption.setText(optionText);
         mOptionViewHolder.mTextViewOption.setAlpha(ALPHA_UNCHECKED);
         if (selectorDrawable != null) {
@@ -152,17 +162,20 @@ public class DuoOptionView extends RelativeLayout {
         }
         mOptionViewHolder.mImageViewSelector.setAlpha(ALPHA_UNCHECKED);
         setSelectorEnabled(true);
-
     }
 
     /**
      * Binds the option view with it's content
      *
      * @param optionText           Text to show as option in the menu.
-     * @param selectorDrawable     Selector to show when option is selected. By default a white circle.
-     * @param selectorSideDrawable Side selector to show when option is selected. By default a red rectangle.
+     * @param selectorDrawable     Selector to show when option is selected.
+     *                             Set to "null" to use it's default.
+     *                             By default it shows a white circle.
+     * @param selectorSideDrawable Side selector to show when option is selected.
+     *                             Set to "null" to use it's default.
+     *                             By default it shows a red rectangle.
      */
-    public void bind(String optionText, Drawable selectorDrawable, Drawable selectorSideDrawable) {
+    public void bind(String optionText, @Nullable Drawable selectorDrawable, @Nullable Drawable selectorSideDrawable) {
         mOptionViewHolder.mTextViewOption.setText(optionText);
         mOptionViewHolder.mTextViewOption.setAlpha(ALPHA_UNCHECKED);
         if (selectorDrawable != null) {
@@ -188,6 +201,16 @@ public class DuoOptionView extends RelativeLayout {
             mTextViewOption = (TextView) rootView.findViewById(R.id.view_option_text);
             mImageViewSelector = (ImageView) rootView.findViewById(R.id.view_option_selector);
             mImageViewSelectorSide = (ImageView) rootView.findViewById(R.id.view_option_selector_side);
+
+            hideSelectorsByDefault();
+        }
+
+        /**
+         * By default both selectors are disabled.
+         */
+        private void hideSelectorsByDefault() {
+            mImageViewSelector.setVisibility(INVISIBLE);
+            mImageViewSelectorSide.setVisibility(GONE);
         }
     }
 }

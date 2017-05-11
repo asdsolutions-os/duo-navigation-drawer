@@ -11,9 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/view_option_text_layout"
         android:layout_alignTop="@+id/view_option_text_layout"
-        android:minWidth="6dp"
-        android:src="#d50000"
-        android:visibility="gone"/>
+        android:src="@drawable/shape_rectangled_red"/>
 
     <RelativeLayout
         android:id="@+id/view_option_text_layout"
