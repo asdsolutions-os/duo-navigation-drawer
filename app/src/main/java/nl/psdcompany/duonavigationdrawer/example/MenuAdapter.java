@@ -12,11 +12,11 @@ import nl.psdcompany.duonavigationdrawer.views.DuoOptionView;
  * Created by PSD on 13-04-17.
  */
 
-class MenuAdapter extends BaseAdapter {
+public class MenuAdapter extends BaseAdapter {
     private ArrayList<String> mOptions = new ArrayList<>();
     private ArrayList<DuoOptionView> mOptionViews = new ArrayList<>();
 
-    MenuAdapter(ArrayList<String> options) {
+    public MenuAdapter(ArrayList<String> options) {
         mOptions = options;
     }
 
@@ -30,7 +30,7 @@ class MenuAdapter extends BaseAdapter {
         return mOptions.get(position);
     }
 
-    void setViewSelected(int position, boolean selected) {
+    public void setViewSelected(int position, boolean selected) {
 
         // Looping through the options in the menu
         // Selecting the chosen option
