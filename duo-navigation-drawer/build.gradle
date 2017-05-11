@@ -14,7 +14,7 @@ ext {
     siteUrl = 'https://github.com/PSD-Company/duo-navigation-drawer'
     gitUrl = 'https://github.com/PSD-Company/duo-navigation-drawer.git'
 
-    libraryVersion = '1.1.0'
+    libraryVersion = '1.1.1'
 
     developerId = 'alexander-psd'
     developerName = 'Alexander Pot'
@@ -32,8 +32,8 @@ android {
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 25
-        versionCode 5
-        versionName "1.1.0"
+        versionCode 6
+        versionName "1.1.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
