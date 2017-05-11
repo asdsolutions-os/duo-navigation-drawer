@@ -192,7 +192,7 @@ public class DuoOptionView extends RelativeLayout {
     /**
      * View holder that holds the views for this layout.
      */
-    private class OptionViewHolder {
+    class OptionViewHolder {
         private TextView mTextViewOption;
         private ImageView mImageViewSelector;
         private ImageView mImageViewSelectorSide;
