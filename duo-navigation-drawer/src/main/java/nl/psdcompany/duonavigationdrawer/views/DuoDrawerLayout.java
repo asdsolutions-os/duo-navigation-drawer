@@ -63,7 +63,7 @@ public class DuoDrawerLayout extends RelativeLayout {
 
     private static final String TAG_MENU = "menu";
     private static final String TAG_CONTENT = "content";
-    private static final String TAG_OVERLAY = "duo_overlay";
+    private static final String TAG_OVERLAY = "overlay";
 
     @LayoutRes
     private static final int DEFAULT_ATTRIBUTE_VALUE = -54321;
