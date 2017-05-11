@@ -80,7 +80,7 @@ or, you can also add a view within the drawer with the tag `content`.
 ```
 
 #### 3. Add the `menu view` view to your `drawer`
-Add the a content view to your drawer by adding the attribute: `app:menu` to your drawer.
+Add the a menu view to your drawer by adding the attribute: `app:menu` to your drawer.
 
 ```xml
 <nl.psdcompany.duonavigationdrawer.views.DuoDrawerLayout
