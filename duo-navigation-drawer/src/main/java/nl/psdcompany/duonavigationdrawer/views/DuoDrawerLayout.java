@@ -63,7 +63,7 @@ public class DuoDrawerLayout extends RelativeLayout {
 
     private static final String TAG_MENU = "menu";
     private static final String TAG_CONTENT = "content";
-    private static final String TAG_OVERLAY = "overlay";
+    private static final String TAG_OVERLAY = "duo_overlay";
 
     @LayoutRes
     private static final int DEFAULT_ATTRIBUTE_VALUE = -54321;
@@ -328,7 +328,7 @@ public class DuoDrawerLayout extends RelativeLayout {
      * Adds a touch interceptor to the layout with a given width.
      */
     private void addTouchInterceptor(float width) {
-        View touchInterceptor = mLayoutInflater.inflate(R.layout.overlay, this, false);
+        View touchInterceptor = mLayoutInflater.inflate(R.layout.duo_overlay, this, false);
         LayoutParams layoutParams = new LayoutParams((int) (width * 0.2), ViewGroup.LayoutParams.MATCH_PARENT);
         layoutParams.addRule(ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
         layoutParams.addRule(CENTER_VERTICAL, RelativeLayout.TRUE);

@@ -38,7 +38,7 @@ public class DuoOptionView extends RelativeLayout {
     }
 
     private void initialize() {
-        ViewGroup rootView = (ViewGroup) inflate(getContext(), R.layout.view_option, this);
+        ViewGroup rootView = (ViewGroup) inflate(getContext(), R.layout.duo_view_option, this);
 
         mOptionViewHolder = new OptionViewHolder(rootView);
     }
@@ -192,15 +192,15 @@ public class DuoOptionView extends RelativeLayout {
     /**
      * View holder that holds the views for this layout.
      */
-    public class OptionViewHolder {
+    private class OptionViewHolder {
         private TextView mTextViewOption;
         private ImageView mImageViewSelector;
         private ImageView mImageViewSelectorSide;
 
-        public OptionViewHolder(ViewGroup rootView) {
-            mTextViewOption = (TextView) rootView.findViewById(R.id.view_option_text);
-            mImageViewSelector = (ImageView) rootView.findViewById(R.id.view_option_selector);
-            mImageViewSelectorSide = (ImageView) rootView.findViewById(R.id.view_option_side_selector);
+        OptionViewHolder(ViewGroup rootView) {
+            mTextViewOption = (TextView) rootView.findViewById(R.id.duo_view_option_text);
+            mImageViewSelector = (ImageView) rootView.findViewById(R.id.duo_view_option_selector);
+            mImageViewSelectorSide = (ImageView) rootView.findViewById(R.id.duo_view_option_selector_side);
 
             hideSelectorsByDefault();
         }

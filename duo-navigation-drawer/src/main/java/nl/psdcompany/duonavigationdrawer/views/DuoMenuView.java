@@ -78,7 +78,7 @@ public class DuoMenuView extends RelativeLayout implements ViewTreeObserver.OnGl
      * Initialize the menu view.
      */
     private void initialize() {
-        ViewGroup rootView = (ViewGroup) inflate(getContext(), R.layout.view_menu, this);
+        ViewGroup rootView = (ViewGroup) inflate(getContext(), R.layout.duo_view_menu, this);
 
         mMenuViewHolder = new MenuViewHolder(rootView);
         mLayoutInflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -365,10 +365,10 @@ public class DuoMenuView extends RelativeLayout implements ViewTreeObserver.OnGl
         private ViewGroup mMenuFooter;
 
         MenuViewHolder(ViewGroup rootView) {
-            this.mMenuOptions = (LinearLayout) rootView.findViewById(R.id.view_menu_options_layout);
-            this.mMenuBackground = (ImageView) rootView.findViewById(R.id.view_menu_background);
-            this.mMenuHeader = (ViewGroup) rootView.findViewById(R.id.view_menu_header_layout);
-            this.mMenuFooter = (ViewGroup) rootView.findViewById(R.id.view_menu_footer_layout);
+            this.mMenuOptions = (LinearLayout) rootView.findViewById(R.id.duo_view_menu_options_layout);
+            this.mMenuBackground = (ImageView) rootView.findViewById(R.id.duo_view_menu_background);
+            this.mMenuHeader = (ViewGroup) rootView.findViewById(R.id.duo_view_menu_header_layout);
+            this.mMenuFooter = (ViewGroup) rootView.findViewById(R.id.duo_view_menu_footer_layout);
         }
     }
 

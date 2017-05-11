@@ -4,29 +4,29 @@
     android:layout_height="match_parent">
 
     <ImageView
-        android:id="@+id/view_menu_background"
+        android:id="@+id/duo_view_menu_background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"/>
 
     <RelativeLayout
-        android:id="@+id/view_menu_header_layout"
+        android:id="@+id/duo_view_menu_header_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"/>
 
     <LinearLayout
-        android:id="@+id/view_menu_options_layout"
+        android:id="@+id/duo_view_menu_options_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/view_menu_footer_layout"
-        android:layout_below="@+id/view_menu_header_layout"
+        android:layout_above="@+id/duo_view_menu_footer_layout"
+        android:layout_below="@+id/duo_view_menu_header_layout"
         android:layout_centerVertical="true"
         android:gravity="center_vertical"
         android:orientation="vertical"/>
 
     <RelativeLayout
-        android:id="@+id/view_menu_footer_layout"
+        android:id="@+id/duo_view_menu_footer_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"/>

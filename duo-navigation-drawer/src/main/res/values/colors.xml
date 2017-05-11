@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorAccent">?attr/colorAccent</color>
+    <color name="duoColorAccent">?attr/colorAccent</color>
 </resources>

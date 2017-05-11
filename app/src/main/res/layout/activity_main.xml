@@ -13,8 +13,8 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:tag="@string/tag_menu"
-        app:footer="@layout/view_footer"
-        app:header="@layout/view_header"/>
+        app:footer="@layout/duo_view_footer"
+        app:header="@layout/duo_view_header"/>
 
     <LinearLayout
         android:layout_width="match_parent"
