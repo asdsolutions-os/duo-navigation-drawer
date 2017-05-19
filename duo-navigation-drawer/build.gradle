@@ -14,7 +14,7 @@ ext {
     siteUrl = 'https://github.com/PSD-Company/duo-navigation-drawer'
     gitUrl = 'https://github.com/PSD-Company/duo-navigation-drawer.git'
 
-    libraryVersion = '1.1.3'
+    libraryVersion = '2.0.0'
 
     developerId = 'alexander-psd'
     developerName = 'Alexander Pot'
