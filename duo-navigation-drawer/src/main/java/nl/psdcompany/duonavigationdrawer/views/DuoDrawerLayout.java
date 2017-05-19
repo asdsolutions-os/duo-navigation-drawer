@@ -105,6 +105,7 @@ public class DuoDrawerLayout extends RelativeLayout {
     private ViewDragHelper mViewDragHelper;
     private LayoutInflater mLayoutInflater;
     private DrawerListener mDrawerListener;
+    private OnDrawerSlideListener mOnDrawerSlideListener;
 
     private View mContentView;
     private View mMenuView;
@@ -758,6 +759,15 @@ public class DuoDrawerLayout extends RelativeLayout {
         mDrawerListener = drawerListener;
     }
 
+    /**
+     * Set a listener to be notified of the drawer slide event.
+     *
+     * @param onDrawerSlideListener Listener to notify when the drawer slide event occurs
+     */
+    public void setOnDrawerSlideListener(OnDrawerSlideListener onDrawerSlideListener) {
+        mOnDrawerSlideListener = onDrawerSlideListener;
+    }
+
     private class ViewDragCallback extends ViewDragHelper.Callback {
 
         boolean mIsEdgeDragEnabled = true;
@@ -819,6 +829,9 @@ public class DuoDrawerLayout extends RelativeLayout {
 
             if (mDrawerListener != null) {
                 mDrawerListener.onDrawerSlide(DuoDrawerLayout.this, mDragOffset);
+            }
+            if (mOnDrawerSlideListener != null) {
+                mOnDrawerSlideListener.OnDrawerSlide(mDragOffset);
             }
         }
 
@@ -883,5 +896,9 @@ public class DuoDrawerLayout extends RelativeLayout {
     @IntDef({LOCK_MODE_UNLOCKED, LOCK_MODE_LOCKED_CLOSED, LOCK_MODE_LOCKED_OPEN})
     @Retention(RetentionPolicy.SOURCE)
     private @interface LockMode {
+    }
+
+    public interface OnDrawerSlideListener {
+        void OnDrawerSlide(float slideOffset);
     }
 }
