@@ -150,6 +150,12 @@ app:menuAlphaClosed="0.0"
 app:menuAlphaOpen="1.0"
 ```
 
+#### Shadow reach effect
+The reach of the shadow behind the content view.
+```xml
+app:shadowReach="0.6"
+```
+
 #### Content margin factor
 This value is used to calculate how much of the content should be visible when the content is slided to the right. This is calculated with the width of the `DuoDrawerLayout` when: `getWidth * marginFactor`. So setting this to 1.0f will slide the content out of the activity. The default is 0.7f.
 
