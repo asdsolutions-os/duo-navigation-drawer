@@ -10,6 +10,7 @@
         <attr name="menuAlphaClosed" format="float"/>
         <attr name="menuAlphaOpen" format="float"/>
         <attr name="marginFactor" format="float"/>
+        <attr name="shadowReach" format="float"/>
     </declare-styleable>
     <declare-styleable name="DuoMenuView">
         <attr name="header" format="reference"/>

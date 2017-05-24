@@ -74,6 +74,10 @@ public class DuoDrawerLayout extends RelativeLayout {
     private static final float MENU_ALPHA_CLOSED = 0.0f;
     private static final float MENU_ALPHA_OPEN = 1.0f;
     private static final float MARGIN_FACTOR = 0.7f;
+    private static final float SHADOW_REACH = 0.6f;
+
+    private static final float MAX_ATTRIBUTE_MULTIPLIER = 100f;
+    private static final float MAX_CLICK_RANGE = 100f;
 
     private float mContentScaleClosed = CONTENT_SCALE_CLOSED;
     private float mContentScaleOpen = CONTENT_SCALE_OPEN;
@@ -82,6 +86,7 @@ public class DuoDrawerLayout extends RelativeLayout {
     private float mMenuAlphaClosed = MENU_ALPHA_CLOSED;
     private float mMenuAlphaOpen = MENU_ALPHA_OPEN;
     private float mMarginFactor = MARGIN_FACTOR;
+    private float mShadowReach = SHADOW_REACH;
 
     private float mDragOffset;
     private float mDraggedXOffset;
@@ -136,6 +141,7 @@ public class DuoDrawerLayout extends RelativeLayout {
             mMenuAlphaClosed = typedArray.getFloat(R.styleable.DuoDrawerLayout_menuAlphaClosed, MENU_ALPHA_CLOSED);
             mMenuAlphaOpen = typedArray.getFloat(R.styleable.DuoDrawerLayout_menuAlphaOpen, MENU_ALPHA_OPEN);
             mMarginFactor = typedArray.getFloat(R.styleable.DuoDrawerLayout_marginFactor, MARGIN_FACTOR);
+            mShadowReach = typedArray.getFloat(R.styleable.DuoDrawerLayout_shadowReach, SHADOW_REACH);
         } finally {
             typedArray.recycle();
         }
@@ -143,8 +149,9 @@ public class DuoDrawerLayout extends RelativeLayout {
         mLayoutInflater = LayoutInflater.from(getContext());
         mViewDragHelper = ViewDragHelper.create(this, 1.0f, new ViewDragCallback());
 
-        setFocusableInTouchMode(true);
-        requestFocus();
+        this.setFocusableInTouchMode(true);
+        this.setClipChildren(false);
+        this.requestFocus();
     }
 
     private float map(float x, float inMin, float inMax, float outMin, float outMax) {
@@ -162,8 +169,6 @@ public class DuoDrawerLayout extends RelativeLayout {
         if (mIsShadowEnabled) {
             addDropShadow();
         }
-
-        addTouchInterceptor();
 
         mContentView.offsetLeftAndRight((int) mDraggedXOffset);
         mContentView.offsetTopAndBottom((int) mDraggedYOffset);
@@ -235,7 +240,6 @@ public class DuoDrawerLayout extends RelativeLayout {
         if (mContentView != null) {
             mContentView.setTag(TAG_CONTENT);
             addView(mContentView);
-            mContentView.bringToFront();
         }
     }
 
@@ -302,68 +306,98 @@ public class DuoDrawerLayout extends RelativeLayout {
         TypedValue typedValue = new TypedValue();
         getContext().getTheme().resolveAttribute(android.R.attr.colorBackground, typedValue, true);
         mContentView.setBackgroundColor(ContextCompat.getColor(getContext(), typedValue.resourceId));
-        ViewCompat.setElevation(mContentView, 6);
-        ViewCompat.setTranslationZ(mContentView, 6);
+        ViewCompat.setElevation(mContentView, mShadowReach * MAX_ATTRIBUTE_MULTIPLIER);
     }
 
     /**
-     * Adds a touch interceptor to the layout
+     * Hide the the touch interceptor.
      */
-    private void addTouchInterceptor() {
-        if (getWidth() == 0) {
-            getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-                @Override
-                public boolean onPreDraw() {
-                    DuoDrawerLayout.this.getViewTreeObserver().removeOnPreDrawListener(this);
-                    addTouchInterceptor(getWidth());
-                    return false;
-                }
-            });
-        } else {
-            addTouchInterceptor(getWidth());
+    private void hideTouchInterceptor() {
+        if (findViewWithTag(TAG_OVERLAY) != null) {
+            findViewWithTag(TAG_OVERLAY).setVisibility(INVISIBLE);
         }
     }
 
     /**
-     * Adds a touch interceptor to the layout with a given width.
+     * Show the the touch interceptor.
      */
-    private void addTouchInterceptor(float width) {
+    private void showTouchInterceptor() {
+        if (findViewWithTag(TAG_OVERLAY) == null) {
+            addTouchInterceptor();
+        }
+
+        View interceptor = findViewWithTag(TAG_OVERLAY);
+
+        if (interceptor != null) {
+            interceptor.setVisibility(VISIBLE);
+        }
+    }
+
+    /**
+     * Boolean to check if a touch is a click.
+     *
+     * @return Returns true if a touch is a click.
+     */
+    private boolean touchIsClick(float startX, float endX, float startY, float endY) {
+        float differenceX = Math.abs(startX - endX);
+        float differenceY = Math.abs(startY - endY);
+        return !(differenceX > MAX_CLICK_RANGE || differenceY > MAX_CLICK_RANGE);
+    }
+
+    /**
+     * Adds a touch interceptor to the layout when needed.
+     * The interceptor wil take care of touch events occurring
+     * on the content view when the drawer is open.
+     */
+    private void addTouchInterceptor() {
+        float offset = map(mContentView.getLeft(), 0, DuoDrawerLayout.this.getWidth() * mMarginFactor, 0, 1);
+        float scaleFactorContent = map(offset, 0, 1, mContentScaleClosed, mContentScaleOpen);
+
         View touchInterceptor = mLayoutInflater.inflate(R.layout.duo_overlay, this, false);
-        LayoutParams layoutParams = new LayoutParams((int) (width * 0.2), ViewGroup.LayoutParams.MATCH_PARENT);
-        layoutParams.addRule(ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
-        layoutParams.addRule(CENTER_VERTICAL, RelativeLayout.TRUE);
-        addView(touchInterceptor, layoutParams);
+
+        touchInterceptor.setTranslationX(mContentView.getLeft());
+        touchInterceptor.setTranslationY(mContentView.getTop());
+        touchInterceptor.setScaleX(scaleFactorContent);
+        touchInterceptor.setScaleY(scaleFactorContent);
         touchInterceptor.setTag(TAG_OVERLAY);
-        touchInterceptor.setOnClickListener(new OnClickListener() {
+        touchInterceptor.setOnTouchListener(new OnTouchListener() {
+            float startX;
+            float startY;
+
             @Override
-            public void onClick(View v) {
+            public boolean onTouch(View v, MotionEvent event) {
                 if (mIsOnTouchCloseEnabled) {
-                    DuoDrawerLayout.this.closeDrawer();
+                    switch (event.getAction()) {
+                        case MotionEvent.ACTION_DOWN:
+                            startX = event.getX();
+                            startY = event.getY();
+                            break;
+                        case MotionEvent.ACTION_UP:
+                            float endX = event.getX();
+                            float endY = event.getY();
+
+                            if (touchIsClick(startX, endX, startY, endY)) {
+                                closeDrawer();
+                            }
+                            break;
+                        case MotionEvent.ACTION_MOVE:
+                            int pointerIndex = (event.getAction() & MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
+                            mViewDragHelper.captureChildView(mContentView, pointerIndex);
+                            break;
+                    }
+                    return true;
+                } else {
+                    return false;
                 }
             }
         });
-        setTouchInterceptorEnabled(isDrawerOpen());
-    }
 
-    /**
-     * Set the touch interceptor enabled or disabled.
-     *
-     * @param enabled Either true or false. Enabling/Disabling the touch interceptor.
-     */
-    private void setTouchInterceptorEnabled(boolean enabled) {
-        View view = findViewWithTag(TAG_OVERLAY);
 
-        if (view != null) {
-            if (enabled) {
-                if (view.getVisibility() != VISIBLE) {
-                    view.setVisibility(VISIBLE);
-                }
-            } else {
-                if (view.getVisibility() != INVISIBLE) {
-                    view.setVisibility(INVISIBLE);
-                }
-            }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            touchInterceptor.setTranslationZ(MAX_ATTRIBUTE_MULTIPLIER);
         }
+
+        addView(touchInterceptor);
     }
 
     /**
@@ -844,18 +878,20 @@ public class DuoDrawerLayout extends RelativeLayout {
 
             if (state == STATE_IDLE) {
                 if (mDragOffset == 0) {
+                    mIsEdgeDragEnabled = true;
+                    hideTouchInterceptor();
+                    setViewAndChildrenEnabled(mContentView, true);
+
                     if (mDrawerListener != null) {
-                        setTouchInterceptorEnabled(false);
                         mDrawerListener.onDrawerClosed(DuoDrawerLayout.this);
-                        mIsEdgeDragEnabled = true;
-                        setViewAndChildrenEnabled(mContentView, true);
                     }
                 } else if (mDragOffset == 1) {
+                    mIsEdgeDragEnabled = false;
+                    showTouchInterceptor();
+                    setViewAndChildrenEnabled(mContentView, false);
+
                     if (mDrawerListener != null) {
-                        setTouchInterceptorEnabled(true);
                         mDrawerListener.onDrawerOpened(DuoDrawerLayout.this);
-                        mIsEdgeDragEnabled = false;
-                        setViewAndChildrenEnabled(mContentView, false);
                     }
                 }
             }
