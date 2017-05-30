@@ -13,6 +13,7 @@ import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ViewDragHelper;
 import android.support.v7.widget.Toolbar;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -247,6 +248,7 @@ public class DuoDrawerLayout extends RelativeLayout {
     protected Parcelable onSaveInstanceState() {
         Bundle bundle = new Bundle();
         bundle.putParcelable("superState", super.onSaveInstanceState());
+        bundle.putFloat("dragOffset", mDragOffset);
         return bundle;
     }
 
@@ -255,6 +257,10 @@ public class DuoDrawerLayout extends RelativeLayout {
         if (state instanceof Bundle) {
             Bundle bundle = (Bundle) state;
             state = bundle.getParcelable("superState");
+            mDragOffset = bundle.getFloat("dragOffset", mDragOffset);
+            if (mDragOffset >= .6) {
+                openDrawer();
+            }
         }
         super.onRestoreInstanceState(state);
     }
@@ -494,8 +500,14 @@ public class DuoDrawerLayout extends RelativeLayout {
      * Close the drawer animated.
      */
     public void closeDrawer() {
-        if (mViewDragHelper.smoothSlideViewTo(mContentView, 0 - mContentView.getPaddingLeft(), mContentView.getTop())) {
-            ViewCompat.postInvalidateOnAnimation(DuoDrawerLayout.this);
+        if (mContentView == null) {
+            mContentView = findViewWithTag(TAG_CONTENT);
+        }
+
+        if (mContentView != null) {
+            if (mViewDragHelper.smoothSlideViewTo(mContentView, 0 - mContentView.getPaddingLeft(), mContentView.getTop())) {
+                ViewCompat.postInvalidateOnAnimation(DuoDrawerLayout.this);
+            }
         }
     }
 

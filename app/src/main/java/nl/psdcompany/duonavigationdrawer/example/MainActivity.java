@@ -1,6 +1,7 @@
 package nl.psdcompany.duonavigationdrawer.example;
 
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
@@ -19,6 +20,8 @@ public class MainActivity extends AppCompatActivity implements DuoMenuView.OnMen
     private ViewHolder mViewHolder;
 
     private ArrayList<String> mTitles = new ArrayList<>();
+
+    private int mStateIndex = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,6 +92,8 @@ public class MainActivity extends AppCompatActivity implements DuoMenuView.OnMen
 
     @Override
     public void onOptionClicked(int position, Object objectClicked) {
+        mStateIndex = position;
+
         // Set the toolbar title
         setTitle(mTitles.get(position));
 
