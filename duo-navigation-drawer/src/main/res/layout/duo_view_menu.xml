@@ -15,15 +15,25 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"/>
 
-    <LinearLayout
-        android:id="@+id/duo_view_menu_options_layout"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@+id/duo_view_menu_footer_layout"
         android:layout_below="@+id/duo_view_menu_header_layout"
-        android:layout_centerVertical="true"
-        android:gravity="center_vertical"
-        android:orientation="vertical"/>
+        android:layout_centerVertical="true">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true">
+
+            <LinearLayout
+                android:id="@+id/duo_view_menu_options_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"/>
+        </ScrollView>
+    </RelativeLayout>
 
     <RelativeLayout
         android:id="@+id/duo_view_menu_footer_layout"
