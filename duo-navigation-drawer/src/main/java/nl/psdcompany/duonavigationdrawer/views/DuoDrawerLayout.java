@@ -106,7 +106,6 @@ public class DuoDrawerLayout extends RelativeLayout {
     private ViewDragHelper mViewDragHelper;
     private LayoutInflater mLayoutInflater;
     private DrawerListener mDrawerListener;
-    private OnDrawerSlideListener mOnDrawerSlideListener;
 
     private View mContentView;
     private View mMenuView;
@@ -122,6 +121,7 @@ public class DuoDrawerLayout extends RelativeLayout {
     public DuoDrawerLayout(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         readAttributes(attrs);
+        initialize();
     }
 
     private void readAttributes(AttributeSet attributeSet) {
@@ -140,7 +140,9 @@ public class DuoDrawerLayout extends RelativeLayout {
         } finally {
             typedArray.recycle();
         }
+    }
 
+    private void initialize() {
         mLayoutInflater = LayoutInflater.from(getContext());
         mViewDragHelper = ViewDragHelper.create(this, 1.0f, new ViewDragCallback());
 
@@ -194,6 +196,11 @@ public class DuoDrawerLayout extends RelativeLayout {
 
         if (mContentView == null) {
             checkForContentAttribute();
+        }
+
+        if (mDragOffset == 0) {
+            setViewAndChildrenEnabled(mContentView, true);
+            setViewAndChildrenEnabled(mMenuView, false);
         }
     }
 
@@ -394,9 +401,6 @@ public class DuoDrawerLayout extends RelativeLayout {
      * @param enabled True or false, enabled/disabled
      */
     private void setViewAndChildrenEnabled(View view, boolean enabled) {
-        if (mIsViewsEnabledOnMove) {
-            return;
-        }
         view.setEnabled(enabled);
         if (view instanceof ViewGroup) {
             ViewGroup viewGroup = (ViewGroup) view;
@@ -763,15 +767,6 @@ public class DuoDrawerLayout extends RelativeLayout {
         mDrawerListener = drawerListener;
     }
 
-    /**
-     * Set a listener to be notified of the drawer slide event.
-     *
-     * @param onDrawerSlideListener Listener to notify when the drawer slide event occurs
-     */
-    public void setOnDrawerSlideListener(OnDrawerSlideListener onDrawerSlideListener) {
-        mOnDrawerSlideListener = onDrawerSlideListener;
-    }
-
     private class ViewDragCallback extends ViewDragHelper.Callback {
 
         boolean mIsEdgeDragEnabled = true;
@@ -834,9 +829,6 @@ public class DuoDrawerLayout extends RelativeLayout {
             if (mDrawerListener != null) {
                 mDrawerListener.onDrawerSlide(DuoDrawerLayout.this, mDragOffset);
             }
-            if (mOnDrawerSlideListener != null) {
-                mOnDrawerSlideListener.OnDrawerSlide(mDragOffset);
-            }
         }
 
         @Override
@@ -855,7 +847,9 @@ public class DuoDrawerLayout extends RelativeLayout {
                 if (mDragOffset == 0) {
                     mIsEdgeDragEnabled = true;
                     hideTouchInterceptor();
+
                     setViewAndChildrenEnabled(mContentView, true);
+                    setViewAndChildrenEnabled(mMenuView, false);
 
                     if (mDrawerListener != null) {
                         mDrawerListener.onDrawerClosed(DuoDrawerLayout.this);
@@ -863,7 +857,12 @@ public class DuoDrawerLayout extends RelativeLayout {
                 } else if (mDragOffset == 1) {
                     mIsEdgeDragEnabled = false;
                     showTouchInterceptor();
-                    setViewAndChildrenEnabled(mContentView, false);
+
+                    if (!mIsViewsEnabledOnMove) {
+                        setViewAndChildrenEnabled(mContentView, false);
+                    }
+
+                    setViewAndChildrenEnabled(mMenuView, true);
 
                     if (mDrawerListener != null) {
                         mDrawerListener.onDrawerOpened(DuoDrawerLayout.this);
@@ -907,9 +906,5 @@ public class DuoDrawerLayout extends RelativeLayout {
     @IntDef({LOCK_MODE_UNLOCKED, LOCK_MODE_LOCKED_CLOSED, LOCK_MODE_LOCKED_OPEN})
     @Retention(RetentionPolicy.SOURCE)
     private @interface LockMode {
-    }
-
-    public interface OnDrawerSlideListener {
-        void OnDrawerSlide(float slideOffset);
     }
 }

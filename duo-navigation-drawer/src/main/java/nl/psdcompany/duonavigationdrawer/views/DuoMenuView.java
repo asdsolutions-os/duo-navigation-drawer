@@ -13,6 +13,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.DragEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,7 +30,7 @@ import nl.psdcompany.psd.duonavigationdrawer.R;
  * Created by PSD on 13-04-17.
  */
 
-public class DuoMenuView extends RelativeLayout implements ViewTreeObserver.OnGlobalLayoutListener, DuoDrawerLayout.OnDrawerSlideListener {
+public class DuoMenuView extends RelativeLayout {
     private static final String TAG_FOOTER = "footer";
     private static final String TAG_HEADER = "header";
 
@@ -37,8 +38,6 @@ public class DuoMenuView extends RelativeLayout implements ViewTreeObserver.OnGl
     private static final int DEFAULT_DRAWABLE_ATTRIBUTE_VALUE = 0b11111111111111110010101111001111;
     @LayoutRes
     private static final int DEFAULT_LAYOUT_ATTRIBUTE_VALUE = 0b11111111111111110010101111010000;
-
-    private int mItemRestoreIndex = 0;
 
     @DrawableRes
     private int mBackgroundDrawableId;
@@ -100,8 +99,6 @@ public class DuoMenuView extends RelativeLayout implements ViewTreeObserver.OnGl
         handleBackground();
         handleHeader();
         handleFooter();
-
-        this.getViewTreeObserver().addOnGlobalLayoutListener(this);
     }
 
     /**
@@ -335,28 +332,6 @@ public class DuoMenuView extends RelativeLayout implements ViewTreeObserver.OnGl
                     setViewAndChildrenEnabled(child, enabled);
                 }
             }
-        }
-    }
-
-    @Override
-    public void onGlobalLayout() {
-        if (this.getParent() instanceof DuoDrawerLayout) {
-            DuoDrawerLayout duoDrawerLayout = ((DuoDrawerLayout) this.getParent());
-
-            if (!duoDrawerLayout.isDrawerOpen()) {
-                setViewAndChildrenEnabled(this, false);
-            }
-
-            duoDrawerLayout.setOnDrawerSlideListener(this);
-        }
-    }
-
-    @Override
-    public void OnDrawerSlide(float slideOffset) {
-        if (slideOffset > 0.7) {
-            setViewAndChildrenEnabled(this, true);
-        } else {
-            setViewAndChildrenEnabled(this, false);
         }
     }
 
