@@ -7,14 +7,11 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.IntDef;
 import android.support.annotation.LayoutRes;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ViewDragHelper;
 import android.support.v7.widget.Toolbar;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -75,7 +72,6 @@ public class DuoDrawerLayout extends RelativeLayout {
     private static final float MENU_ALPHA_CLOSED = 0.0f;
     private static final float MENU_ALPHA_OPEN = 1.0f;
     private static final float MARGIN_FACTOR = 0.7f;
-    private static final float SHADOW_REACH = 0.6f;
 
     private static final float MAX_ATTRIBUTE_MULTIPLIER = 100f;
     private static final float MAX_CLICK_RANGE = 100f;
@@ -87,7 +83,6 @@ public class DuoDrawerLayout extends RelativeLayout {
     private float mMenuAlphaClosed = MENU_ALPHA_CLOSED;
     private float mMenuAlphaOpen = MENU_ALPHA_OPEN;
     private float mMarginFactor = MARGIN_FACTOR;
-    private float mShadowReach = SHADOW_REACH;
 
     private float mDragOffset;
     private float mDraggedXOffset;
@@ -142,7 +137,6 @@ public class DuoDrawerLayout extends RelativeLayout {
             mMenuAlphaClosed = typedArray.getFloat(R.styleable.DuoDrawerLayout_menuAlphaClosed, MENU_ALPHA_CLOSED);
             mMenuAlphaOpen = typedArray.getFloat(R.styleable.DuoDrawerLayout_menuAlphaOpen, MENU_ALPHA_OPEN);
             mMarginFactor = typedArray.getFloat(R.styleable.DuoDrawerLayout_marginFactor, MARGIN_FACTOR);
-            mShadowReach = typedArray.getFloat(R.styleable.DuoDrawerLayout_shadowReach, SHADOW_REACH);
         } finally {
             typedArray.recycle();
         }
@@ -166,9 +160,6 @@ public class DuoDrawerLayout extends RelativeLayout {
 
         if (mIsEdgeDragEnabled) {
             mViewDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_LEFT);
-        }
-        if (mIsShadowEnabled) {
-            addDropShadow();
         }
 
         mContentView.offsetLeftAndRight((int) mDraggedXOffset);
@@ -300,19 +291,6 @@ public class DuoDrawerLayout extends RelativeLayout {
     public boolean onTouchEvent(MotionEvent event) {
         mViewDragHelper.processTouchEvent(event);
         return true;
-    }
-
-    /**
-     * Adds a touch interceptor to the layout
-     */
-    private void addDropShadow() {
-        if (mContentView == null) {
-            mContentView = findViewWithTag(TAG_CONTENT);
-        }
-        TypedValue typedValue = new TypedValue();
-        getContext().getTheme().resolveAttribute(android.R.attr.colorBackground, typedValue, true);
-        mContentView.setBackgroundColor(ContextCompat.getColor(getContext(), typedValue.resourceId));
-        ViewCompat.setElevation(mContentView, mShadowReach * MAX_ATTRIBUTE_MULTIPLIER);
     }
 
     /**
@@ -546,28 +524,6 @@ public class DuoDrawerLayout extends RelativeLayout {
      */
     public void setEdgeDragEnabled(boolean edgeDragEnabled) {
         mIsEdgeDragEnabled = edgeDragEnabled;
-        invalidate();
-        requestLayout();
-    }
-
-    /**
-     * Check if the shadow behind the content view is enabled. Enabled by default.
-     * Only works on API 21+.
-     *
-     * @return true if the swipe feature is enabled.
-     */
-    public boolean isShadowEnabled() {
-        return mIsShadowEnabled;
-    }
-
-    /**
-     * Set the shadow feature behind the content view enabled or disabled.
-     * Only works on API 21+.
-     *
-     * @param shadowEnabled Either true or false. Enabling/Disabling the shadow behind the content view.
-     */
-    public void setShadowEnabled(boolean shadowEnabled) {
-        mIsShadowEnabled = shadowEnabled;
         invalidate();
         requestLayout();
     }
