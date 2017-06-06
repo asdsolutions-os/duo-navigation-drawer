@@ -1,6 +1,7 @@
 package nl.psdcompany.duonavigationdrawer.views;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.os.Build;
 import android.os.Bundle;
@@ -247,8 +248,7 @@ public class DuoDrawerLayout extends RelativeLayout {
         if (state instanceof Bundle) {
             Bundle bundle = (Bundle) state;
             state = bundle.getParcelable("superState");
-            mDragOffset = bundle.getFloat("dragOffset", mDragOffset);
-            if (mDragOffset >= .6) {
+            if (bundle.getFloat("dragOffset", 0f) > .6f) {
                 openDrawer();
             }
         }
@@ -309,9 +309,20 @@ public class DuoDrawerLayout extends RelativeLayout {
             addTouchInterceptor();
         }
 
+        if (mContentView == null) {
+            mContentView = findViewWithTag(TAG_CONTENT);
+        }
+
+        float offset = map(mContentView.getLeft(), 0, DuoDrawerLayout.this.getWidth() * mMarginFactor, 0, 1);
+        float scaleFactorContent = map(offset, 0, 1, mContentScaleClosed, mContentScaleOpen);
+
         View interceptor = findViewWithTag(TAG_OVERLAY);
 
         if (interceptor != null) {
+            interceptor.setTranslationX(mContentView.getLeft());
+            interceptor.setTranslationY(mContentView.getTop());
+            interceptor.setScaleX(scaleFactorContent);
+            interceptor.setScaleY(scaleFactorContent);
             interceptor.setVisibility(VISIBLE);
         }
     }
@@ -333,15 +344,7 @@ public class DuoDrawerLayout extends RelativeLayout {
      * on the content view when the drawer is open.
      */
     private void addTouchInterceptor() {
-        float offset = map(mContentView.getLeft(), 0, DuoDrawerLayout.this.getWidth() * mMarginFactor, 0, 1);
-        float scaleFactorContent = map(offset, 0, 1, mContentScaleClosed, mContentScaleOpen);
-
         View touchInterceptor = mLayoutInflater.inflate(R.layout.duo_overlay, this, false);
-
-        touchInterceptor.setTranslationX(mContentView.getLeft());
-        touchInterceptor.setTranslationY(mContentView.getTop());
-        touchInterceptor.setScaleX(scaleFactorContent);
-        touchInterceptor.setScaleY(scaleFactorContent);
         touchInterceptor.setTag(TAG_OVERLAY);
         touchInterceptor.setOnTouchListener(new OnTouchListener() {
             float startX;
@@ -839,6 +842,11 @@ public class DuoDrawerLayout extends RelativeLayout {
         @Override
         public void onViewDragStateChanged(int state) {
             super.onViewDragStateChanged(state);
+
+            if (getContext().getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE
+                    && mDragOffset >= .6f) {
+                mDragOffset = 1;
+            }
 
             mDraggedXOffset = mContentView.getLeft();
             mDraggedYOffset = mContentView.getTop();
