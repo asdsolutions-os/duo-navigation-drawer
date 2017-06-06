@@ -74,7 +74,7 @@ public class DuoDrawerLayout extends RelativeLayout {
     private static final float MARGIN_FACTOR = 0.7f;
 
     private static final float MAX_ATTRIBUTE_MULTIPLIER = 100f;
-    private static final float MAX_CLICK_RANGE = 100f;
+    private static final float MAX_CLICK_RANGE = 300f;
 
     private float mContentScaleClosed = CONTENT_SCALE_CLOSED;
     private float mContentScaleOpen = CONTENT_SCALE_OPEN;
@@ -90,7 +90,6 @@ public class DuoDrawerLayout extends RelativeLayout {
 
     private boolean mIsEdgeDragEnabled = true;
     private boolean mIsOnTouchCloseEnabled = true;
-    private boolean mIsShadowEnabled = true;
     private boolean mIsViewsEnabledOnMove = false;
 
     @LockMode
