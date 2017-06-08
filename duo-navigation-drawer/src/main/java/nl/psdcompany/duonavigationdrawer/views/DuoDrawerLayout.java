@@ -89,10 +89,6 @@ public class DuoDrawerLayout extends RelativeLayout {
     private float mDraggedXOffset;
     private float mDraggedYOffset;
 
-    private boolean mIsEdgeDragEnabled = true;
-    private boolean mIsOnTouchCloseEnabled = true;
-    private boolean mIsViewsEnabledOnMove = false;
-
     @LockMode
     private int mLockMode;
     @State
@@ -145,6 +141,7 @@ public class DuoDrawerLayout extends RelativeLayout {
     private void initialize() {
         mLayoutInflater = LayoutInflater.from(getContext());
         mViewDragHelper = ViewDragHelper.create(this, 1.0f, new ViewDragCallback());
+        mViewDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_LEFT);
 
         this.setFocusableInTouchMode(true);
         this.setClipChildren(false);
@@ -159,10 +156,6 @@ public class DuoDrawerLayout extends RelativeLayout {
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         super.onLayout(changed, l, t, r, b);
         handleViews();
-
-        if (mIsEdgeDragEnabled) {
-            mViewDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_LEFT);
-        }
 
         mContentView.offsetLeftAndRight((int) mDraggedXOffset);
         mContentView.offsetTopAndBottom((int) mDraggedYOffset);
@@ -359,7 +352,7 @@ public class DuoDrawerLayout extends RelativeLayout {
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                if (mIsOnTouchCloseEnabled) {
+                if (mLockMode != LOCK_MODE_LOCKED_OPEN) {
                     switch (event.getAction()) {
                         case MotionEvent.ACTION_DOWN:
                             startX = event.getX();
@@ -379,9 +372,7 @@ public class DuoDrawerLayout extends RelativeLayout {
                             break;
                     }
                     return true;
-                } else {
-                    return false;
-                }
+                } else return true;
             }
         });
 
@@ -512,71 +503,6 @@ public class DuoDrawerLayout extends RelativeLayout {
      */
     public boolean isDrawerVisible() {
         return mDragOffset > 0;
-    }
-
-    /**
-     * Check if swipe is enabled. Enabled by default.
-     *
-     * @return true if the swipe feature is enabled.
-     */
-    public boolean isEdgeDragEnabled() {
-        return mIsEdgeDragEnabled;
-    }
-
-    /**
-     * Set the swipe feature enabled or disabled.
-     *
-     * @param edgeDragEnabled Either true or false. Enabling/Disabling the swipe feature.
-     */
-    public void setEdgeDragEnabled(boolean edgeDragEnabled) {
-        mIsEdgeDragEnabled = edgeDragEnabled;
-        invalidate();
-        requestLayout();
-    }
-
-    /**
-     * Check if on touch close is enabled. Enabled by default.
-     *
-     * @return true if the on touch close feature is enabled.
-     */
-    public boolean isOnTouchCloseEnabled() {
-        return mIsOnTouchCloseEnabled;
-    }
-
-    /**
-     * Set the on touch close feature enabled/disabled.
-     *
-     * @param enabled Either true or false. Enabling/Disabling the on touch close feature.
-     */
-    public void setOnTouchCloseEnabled(boolean enabled) {
-        mIsOnTouchCloseEnabled = enabled;
-        invalidate();
-        requestLayout();
-    }
-
-    /**
-     * Check if views should be enabled or disabled during the move.
-     * View are disabled on move by default.
-     *
-     * @return false if the views should be disabled during move.
-     */
-    public boolean isViewsEnabledOnMove() {
-        return mIsViewsEnabledOnMove;
-    }
-
-    /**
-     * Set the views enabled/disabled during move.
-     *
-     * @param enabled Either true or false. Enabling/Disabling the views on move.
-     */
-    public void setViewsEnabledOnMove(boolean enabled) {
-        mIsViewsEnabledOnMove = enabled;
-        if (enabled) {
-            setOnTouchCloseEnabled(false);
-        } else {
-            invalidate();
-            requestLayout();
-        }
     }
 
     /**
@@ -769,11 +695,9 @@ public class DuoDrawerLayout extends RelativeLayout {
 
     private class ViewDragCallback extends ViewDragHelper.Callback {
 
-        boolean mIsEdgeDragEnabled = true;
-
         @Override
         public boolean tryCaptureView(View child, int pointerId) {
-            return !mIsEdgeDragEnabled && child == mContentView && mLockMode == LOCK_MODE_UNLOCKED;
+            return (mLockMode == LOCK_MODE_UNLOCKED || mLockMode == LOCK_MODE_LOCKED_OPEN) && child == mContentView;
         }
 
         @Override
@@ -791,7 +715,9 @@ public class DuoDrawerLayout extends RelativeLayout {
 
         @Override
         public void onEdgeDragStarted(int edgeFlags, int pointerId) {
-            mViewDragHelper.captureChildView(mContentView, pointerId);
+            if (tryCaptureView(mContentView, pointerId)) {
+                mViewDragHelper.captureChildView(mContentView, pointerId);
+            }
         }
 
         @Override
@@ -845,23 +771,14 @@ public class DuoDrawerLayout extends RelativeLayout {
 
             if (state == STATE_IDLE) {
                 if (mDragOffset == 0) {
-                    mIsEdgeDragEnabled = true;
                     hideTouchInterceptor();
-
-                    setViewAndChildrenEnabled(mContentView, true);
                     setViewAndChildrenEnabled(mMenuView, false);
 
                     if (mDrawerListener != null) {
                         mDrawerListener.onDrawerClosed(DuoDrawerLayout.this);
                     }
                 } else if (mDragOffset == 1) {
-                    mIsEdgeDragEnabled = false;
                     showTouchInterceptor();
-
-                    if (!mIsViewsEnabledOnMove) {
-                        setViewAndChildrenEnabled(mContentView, false);
-                    }
-
                     setViewAndChildrenEnabled(mMenuView, true);
 
                     if (mDrawerListener != null) {
