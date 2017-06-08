@@ -1,12 +1,10 @@
-# Duo Navigation Drawer
+# Duo Navigation Drawer [![Build Status](https://travis-ci.org/PSD-Company/duo-navigation-drawer.svg?branch=master)](https://travis-ci.org/PSD-Company/duo-navigation-drawer) [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-DuoNavigationDrawer-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/5779)
 
 This Android library provides an easy way to create an alternative navigation
 drawer for android. Instead of a drawer that slides over the main content of
 the Activity, this lets the content slide away and reveal a menu below it.
 
 By default it applies a scaling effect on the content and menu.
-
-[![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-DuoNavigationDrawer-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/5779)
 
 ## Demo
 [![Demo CountPages alpha](https://j.gifs.com/vgyrrV.gif)][2]
