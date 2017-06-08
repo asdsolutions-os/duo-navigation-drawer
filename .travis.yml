@@ -4,7 +4,7 @@ android:
   components:
     # Uncomment the lines below if you want to
     # use the latest revision of Android SDK Tools
-    - platform-tools
+    # - platform-tools
     - tools
 
     # The BuildTools version used by your project
@@ -17,6 +17,18 @@ android:
     - extra-google-m2repository
     - extra-android-m2repository
 
+jdk:
+  - oraclejdk8
+
 branches:
   except:
     - gh-pages
+
+notifications:
+  email: false
+
+sudo: false
+
+cache:
+  directories:
+    - $HOME/.m2
