@@ -6,6 +6,8 @@ the Activity, this lets the content slide away and reveal a menu below it.
 
 By default it applies a scaling effect on the content and menu.
 
+[![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-DuoNavigationDrawer-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/5779)
+
 ## Demo
 [![Demo CountPages alpha](https://j.gifs.com/vgyrrV.gif)][2]
 
