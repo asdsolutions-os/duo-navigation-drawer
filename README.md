@@ -6,6 +6,8 @@ the Activity, this lets the content slide away and reveal a menu below it.
 
 By default it applies a scaling effect on the content and menu.
 
+[![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-DuoNavigationDrawer-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/5779)
+
 ## Demo
 [![Demo CountPages alpha](https://j.gifs.com/vgyrrV.gif)][2]
 
@@ -25,7 +27,7 @@ repositories {
 }
 
 dependencies {
-    compile 'nl.psdcompany:duo-navigation-drawer:2.0.3'
+    compile 'nl.psdcompany:duo-navigation-drawer:2.0.4'
 }
 ```
 
@@ -35,7 +37,7 @@ Or Maven:
 <dependency>
   <groupId>nl.psdcompany</groupId>
   <artifactId>duo-navigation-drawer</artifactId>
-  <version>2.0.3</version>
+  <version>2.0.4</version>
   <type>pom</type>
 </dependency>
 ```
@@ -123,7 +125,7 @@ drawerToggle.syncState();
 
 ### Using the `DuoMenuView`
 
-If you want to your `menu` to look like the demo. you should consider using the `DuoMenuView` For more info using the `DuoMenuView` click [here][3].
+If you want your `menu` to look like the demo. you should consider using the `DuoMenuView` For more info using the `DuoMenuView` click [here][3].
 
 ### Effects
 
