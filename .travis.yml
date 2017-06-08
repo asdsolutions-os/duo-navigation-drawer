@@ -14,7 +14,7 @@ android:
     - android-25
 
     # Additional components
-    - extra-google-m2repository
+    - extra-android-support
     - extra-android-m2repository
 
 jdk:
@@ -29,3 +29,6 @@ sudo: false
 cache:
   directories:
     - $HOME/.m2
+    
+script:
+- chmod +x ./gradlew
