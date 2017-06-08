@@ -4,7 +4,7 @@ android:
   components:
     # Uncomment the lines below if you want to
     # use the latest revision of Android SDK Tools
-    # - platform-tools
+    - platform-tools
     - tools
 
     # The BuildTools version used by your project
@@ -23,12 +23,6 @@ jdk:
 branches:
   except:
     - gh-pages
-
-sudo: false
-
-cache:
-  directories:
-    - $HOME/.m2
     
 script:
 - chmod +x ./gradlew
