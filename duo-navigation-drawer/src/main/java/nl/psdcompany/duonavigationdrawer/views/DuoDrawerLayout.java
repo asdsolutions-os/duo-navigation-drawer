@@ -68,6 +68,7 @@ public class DuoDrawerLayout extends RelativeLayout {
     private static final int DEFAULT_ATTRIBUTE_VALUE = -54321;
     private static final float CONTENT_SCALE_CLOSED = 1.0f;
     private static final float CONTENT_SCALE_OPEN = 0.7f;
+    private static final float CLICK_TO_CLOSE_SCALE = 0.7f;
     private static final float MENU_SCALE_CLOSED = 1.1f;
     private static final float MENU_SCALE_OPEN = 1.0f;
     private static final float MENU_ALPHA_CLOSED = 0.0f;
@@ -84,6 +85,7 @@ public class DuoDrawerLayout extends RelativeLayout {
     private float mMenuAlphaClosed = MENU_ALPHA_CLOSED;
     private float mMenuAlphaOpen = MENU_ALPHA_OPEN;
     private float mMarginFactor = MARGIN_FACTOR;
+    private float mClickToCloseScale = CLICK_TO_CLOSE_SCALE;
 
     private float mDragOffset;
     private float mDraggedXOffset;
@@ -133,6 +135,7 @@ public class DuoDrawerLayout extends RelativeLayout {
             mMenuAlphaClosed = typedArray.getFloat(R.styleable.DuoDrawerLayout_menuAlphaClosed, MENU_ALPHA_CLOSED);
             mMenuAlphaOpen = typedArray.getFloat(R.styleable.DuoDrawerLayout_menuAlphaOpen, MENU_ALPHA_OPEN);
             mMarginFactor = typedArray.getFloat(R.styleable.DuoDrawerLayout_marginFactor, MARGIN_FACTOR);
+            mClickToCloseScale = typedArray.getFloat(R.styleable.DuoDrawerLayout_clickToCloseScale, CLICK_TO_CLOSE_SCALE);
         } finally {
             typedArray.recycle();
         }
@@ -314,7 +317,7 @@ public class DuoDrawerLayout extends RelativeLayout {
         }
 
         float offset = map(mContentView.getLeft(), 0, DuoDrawerLayout.this.getWidth() * mMarginFactor, 0, 1);
-        float scaleFactorContent = map(offset, 0, 1, mContentScaleClosed, mContentScaleOpen);
+        float scaleFactorContent = map(offset, 0, 1, mContentScaleClosed, mClickToCloseScale);
 
         View interceptor = findViewWithTag(TAG_OVERLAY);
 
@@ -648,6 +651,17 @@ public class DuoDrawerLayout extends RelativeLayout {
     }
 
     /**
+     * Set the scale of the click to close surface when the drawer is open. 0.7f is the original scaling.
+     *
+     * @param clickToCloseScale Scale of the click to close surface when the drawer is open.
+     */
+    public void setClickToCloseScale(float clickToCloseScale) {
+        mClickToCloseScale = clickToCloseScale;
+        invalidate();
+        requestLayout();
+    }
+
+    /**
      * Set the alpha of the menu when the drawer is closed.
      * 0.0f is transparent, 1.0f is completely visible.
      *
@@ -715,9 +729,19 @@ public class DuoDrawerLayout extends RelativeLayout {
 
         @Override
         public void onEdgeDragStarted(int edgeFlags, int pointerId) {
-            if (tryCaptureView(mContentView, pointerId)) {
+            if (tryCaptureView(mContentView, pointerId) && edgeFlags == ViewDragHelper.EDGE_LEFT) {
                 mViewDragHelper.captureChildView(mContentView, pointerId);
             }
+        }
+
+        @Override
+        public void onViewCaptured(View capturedChild, int activePointerId) {
+            super.onViewCaptured(capturedChild, activePointerId);
+        }
+
+        @Override
+        public void onEdgeTouched(int edgeFlags, int pointerId) {
+            super.onEdgeTouched(edgeFlags, pointerId);
         }
 
         @Override

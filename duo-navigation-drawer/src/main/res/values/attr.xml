@@ -4,6 +4,7 @@
         <attr name="menu" format="reference"/>
         <attr name="content" format="reference"/>
         <attr name="contentScaleClosed" format="float"/>
+        <attr name="clickToCloseScale" format="float"/>
         <attr name="contentScaleOpen" format="float"/>
         <attr name="menuScaleClosed" format="float"/>
         <attr name="menuScaleOpen" format="float"/>
