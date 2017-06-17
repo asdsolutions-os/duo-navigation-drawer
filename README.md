@@ -143,6 +143,12 @@ app:menuScaleClosed="1.1"
 app:menuScaleOpen="1.0"
 ```
 
+#### Click to close surface scaling effect
+The scaling applied on the click to close surface when the drawer is open.
+```xml
+app:clickToCloseScale="0.7"
+```
+
 #### Menu alpha effect
 The alpha on the menu when sliding the content from left to right.
 ```xml
