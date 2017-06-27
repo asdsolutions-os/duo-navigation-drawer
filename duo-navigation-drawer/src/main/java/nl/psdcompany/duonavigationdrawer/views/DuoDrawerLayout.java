@@ -60,6 +60,11 @@ public class DuoDrawerLayout extends RelativeLayout {
      */
     public static final int LOCK_MODE_LOCKED_OPEN = 2;
 
+    /**
+     * Length of time to delay before peeking the drawer.
+     */
+    private static final int PEEK_DELAY = 160;
+
     private static final String TAG_MENU = "menu";
     private static final String TAG_CONTENT = "content";
     private static final String TAG_OVERLAY = "overlay";
@@ -104,6 +109,7 @@ public class DuoDrawerLayout extends RelativeLayout {
     private ViewDragHelper mViewDragHelper;
     private LayoutInflater mLayoutInflater;
     private DrawerListener mDrawerListener;
+    private ViewDragCallback mViewDragCallback;
 
     private View mContentView;
     private View mMenuView;
@@ -143,7 +149,8 @@ public class DuoDrawerLayout extends RelativeLayout {
 
     private void initialize() {
         mLayoutInflater = LayoutInflater.from(getContext());
-        mViewDragHelper = ViewDragHelper.create(this, 1.0f, new ViewDragCallback());
+        mViewDragCallback = new ViewDragCallback();
+        mViewDragHelper = ViewDragHelper.create(this, 1.0f, mViewDragCallback);
         mViewDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_LEFT);
 
         this.setFocusableInTouchMode(true);
@@ -282,10 +289,15 @@ public class DuoDrawerLayout extends RelativeLayout {
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         final int action = MotionEventCompat.getActionMasked(ev);
-        if (action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP) {
-            mViewDragHelper.cancel();
-            return false;
+
+        switch (action) {
+            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_UP: {
+                mViewDragHelper.cancel();
+                return false;
+            }
         }
+
         return mViewDragHelper.shouldInterceptTouchEvent(ev);
     }
 
@@ -370,6 +382,7 @@ public class DuoDrawerLayout extends RelativeLayout {
                             }
                             break;
                         case MotionEvent.ACTION_MOVE:
+                            mViewDragCallback.mIsEdgeDrag = true;
                             int pointerIndex = (event.getAction() & MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
                             mViewDragHelper.captureChildView(mContentView, pointerIndex);
                             break;
@@ -708,10 +721,11 @@ public class DuoDrawerLayout extends RelativeLayout {
     }
 
     private class ViewDragCallback extends ViewDragHelper.Callback {
+        boolean mIsEdgeDrag = false;
 
         @Override
         public boolean tryCaptureView(View child, int pointerId) {
-            return (mLockMode == LOCK_MODE_UNLOCKED || mLockMode == LOCK_MODE_LOCKED_OPEN) && child == mContentView;
+            return (mLockMode == LOCK_MODE_UNLOCKED || mLockMode == LOCK_MODE_LOCKED_OPEN) && child == mContentView && mIsEdgeDrag;
         }
 
         @Override
@@ -729,6 +743,8 @@ public class DuoDrawerLayout extends RelativeLayout {
 
         @Override
         public void onEdgeDragStarted(int edgeFlags, int pointerId) {
+            mIsEdgeDrag = true;
+
             if (tryCaptureView(mContentView, pointerId) && edgeFlags == ViewDragHelper.EDGE_LEFT) {
                 mViewDragHelper.captureChildView(mContentView, pointerId);
             }
@@ -757,6 +773,8 @@ public class DuoDrawerLayout extends RelativeLayout {
             } else {
                 closeDrawer();
             }
+
+            mIsEdgeDrag = false;
         }
 
         @Override
