@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="DuoDrawerLayout">
+        <attr name="menu" format="reference"/>
+        <attr name="content" format="reference"/>
+        <attr name="contentScaleClosed" format="float"/>
+        <attr name="clickToCloseScale" format="float"/>
+        <attr name="contentScaleOpen" format="float"/>
+        <attr name="menuScaleClosed" format="float"/>
+        <attr name="menuScaleOpen" format="float"/>
+        <attr name="menuAlphaClosed" format="float"/>
+        <attr name="menuAlphaOpen" format="float"/>
+        <attr name="marginFactor" format="float"/>
+    </declare-styleable>
+    <declare-styleable name="DuoMenuView">
+        <attr name="header" format="reference"/>
+        <attr name="footer" format="reference"/>
+        <attr name="background" format="reference"/>
+    </declare-styleable>
+</resources>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground">
+
+    <ImageView
+        android:id="@+id/duo_view_option_selector_side"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/view_option_text_layout"
+        android:layout_alignTop="@+id/view_option_text_layout"
+        android:src="@drawable/duo_shape_rectangled_red"/>
+
+    <RelativeLayout
+        android:id="@+id/view_option_text_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/duo_view_option_selector_side"
+        android:padding="16dp">
+
+        <ImageView
+            android:id="@+id/duo_view_option_selector"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="16dp"
+            android:src="@drawable/duo_shape_circled_white"/>
+
+        <TextView
+            android:id="@+id/duo_view_option_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="16dp"
+            android:layout_toRightOf="@+id/duo_view_option_selector"
+            android:gravity="center_vertical|start"
+            android:text="@string/app_name"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"/>
+    </RelativeLayout>
+</RelativeLayout>

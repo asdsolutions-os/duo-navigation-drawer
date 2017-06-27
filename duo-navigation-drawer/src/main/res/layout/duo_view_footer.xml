@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <Button
+        android:id="@+id/duo_view_footer_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginBottom="32dp"
+        android:layout_marginLeft="32dp"
+        android:background="@drawable/duo_shape_rectangled_rounded_color_accent"
+        android:gravity="center"
+        android:minWidth="@android:dimen/thumbnail_width"
+        android:padding="8dp"
+        android:text="Log Off"
+        android:textAllCaps="true"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"/>
+</RelativeLayout>

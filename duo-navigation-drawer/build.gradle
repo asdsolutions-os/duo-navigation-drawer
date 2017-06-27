@@ -1,0 +1,57 @@
+apply plugin: 'com.android.library'
+
+ext {
+    bintrayRepo = 'maven'
+    bintrayName = 'duo-navigation-drawer'
+    bintrayOrg = 'psdcompany'
+
+    publishedGroupId = 'nl.psdcompany'
+    libraryName = 'duo-navigation-drawer'
+    artifact = 'duo-navigation-drawer'
+
+    libraryDescription = 'This Android library provides an easy way to create an alternative navigation drawer for android. Instead of a drawer that slides over the main content of the Activity, this lets the content slide away and reveal a menu below it.'
+
+    siteUrl = 'https://github.com/PSD-Company/duo-navigation-drawer'
+    gitUrl = 'https://github.com/PSD-Company/duo-navigation-drawer.git'
+
+    libraryVersion = '2.0.6'
+
+    developerId = 'alexander-psd'
+    developerName = 'Alexander Pot'
+    developerEmail = 'alexander.dpot@gmail.com'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+}
+
+android {
+    compileSdkVersion 26
+    buildToolsVersion "26.0.0"
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    testCompile 'junit:junit:4.12'
+}
+
+apply from: 'https://raw.githubusercontent.com/Alexander-1504/JCenter/master/installv1.gradle'
+apply from: 'https://raw.githubusercontent.com/Alexander-1504/JCenter/master/bintrayv1.gradle'

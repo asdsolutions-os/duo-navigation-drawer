@@ -1,1 +1,1 @@
-include ':app', ':duonavigationdrawer'
+include ':app', ':duo-navigation-drawer'
