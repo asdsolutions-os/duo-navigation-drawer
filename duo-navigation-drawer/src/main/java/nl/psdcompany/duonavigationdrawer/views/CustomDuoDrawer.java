@@ -2,13 +2,11 @@ package nl.psdcompany.duonavigationdrawer.views;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Canvas;
 import android.os.Build;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewGroupCompat;
 import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -33,7 +31,6 @@ public class CustomDuoDrawer extends ViewGroup {
     private static final String TAG_CONTENT = "content";
     private static final String TAG_SIDE_MENU = "duo_side_menu";
 
-    private static final int MIN_DRAWER_MARGIN = 64;
     private static final int MIN_FLING_VELOCITY = 400;
 
     private final ViewDragHelper mViewDragHelperEnd;
@@ -232,15 +229,15 @@ public class CustomDuoDrawer extends ViewGroup {
         return (x - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
     }
 
-    public void closeDrawer() {
+    public void closeDrawer(Edge pEdge) {
         if (mContentView == null) {
             mContentView = findViewWithTag(TAG_CONTENT);
         }
 
-        if (mCurrentDrawerState == DrawerState.OPENED_FROM_START) {
+        if (pEdge == Edge.START) {
             mViewDragHelperStart.smoothSlideViewTo(mContentView, 0, mContentView.getTop());
-        } else if (mCurrentDrawerState == DrawerState.OPENED_FROM_END) {
-            mViewDragHelperEnd.smoothSlideViewTo(mContentView, getWidth(), mContentView.getTop());
+        } else if (pEdge == Edge.END) {
+            mViewDragHelperEnd.smoothSlideViewTo(mSideMenuView, getWidth(), mContentView.getTop());
         }
 
         invalidate();
@@ -288,7 +285,7 @@ public class CustomDuoDrawer extends ViewGroup {
             mEdge = pEdge;
         }
 
-        public void setViewDragHelper(ViewDragHelper pViewDragHelper) {
+        void setViewDragHelper(ViewDragHelper pViewDragHelper) {
             mViewDragHelper = pViewDragHelper;
         }
 
@@ -322,7 +319,12 @@ public class CustomDuoDrawer extends ViewGroup {
 
         @Override
         public void onViewCaptured(View capturedChild, int activePointerId) {
-            super.onViewCaptured(capturedChild, activePointerId);
+            closeOtherDrawer();
+        }
+
+        private void closeOtherDrawer() {
+            final Edge otherEdge = mEdge == Edge.START ? Edge.END : Edge.START;
+            closeDrawer(otherEdge);
         }
 
         @Override
@@ -360,20 +362,20 @@ public class CustomDuoDrawer extends ViewGroup {
 
         @Override
         public int getViewHorizontalDragRange(View child) {
-            return CustomDuoDrawer.this.getMeasuredWidth();
+            return CustomDuoDrawer.this.getWidth();
         }
 
         @Override
         public int clampViewPositionHorizontal(View child, int left, int dx) {
             int finalLeft;
             if (mEdge == Edge.START) {
-                finalLeft = (int) (CustomDuoDrawer.this.getMeasuredWidth() * 0.7);
+                finalLeft = (int) (CustomDuoDrawer.this.getWidth() * 0.7);
                 if (left < 0) return 0;
                 if (left > finalLeft) return finalLeft;
             } else {
-                finalLeft = CustomDuoDrawer.this.getMeasuredWidth() - child.getWidth();
-                if (left > CustomDuoDrawer.this.getMeasuredWidth())
-                    return CustomDuoDrawer.this.getMeasuredWidth();
+                finalLeft = CustomDuoDrawer.this.getWidth() - child.getWidth();
+                if (left > CustomDuoDrawer.this.getWidth())
+                    return CustomDuoDrawer.this.getWidth();
                 if (left < finalLeft) return finalLeft;
             }
             return left;
