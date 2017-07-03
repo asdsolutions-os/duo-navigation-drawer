@@ -10,11 +10,12 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import nl.psdcompany.duonavigationdrawer.views.DuoDrawerLayout;
+import nl.psdcompany.duonavigationdrawer.views.CustomDuoDrawer;
 import nl.psdcompany.duonavigationdrawer.views.DuoMenuView;
-import nl.psdcompany.duonavigationdrawer.widgets.DuoDrawerToggle;
 
 public class MainActivity extends AppCompatActivity implements DuoMenuView.OnMenuClickListener {
+    private CustomDuoDrawer mDrawerLayout;
+
     private MenuAdapter mMenuAdapter;
     private ViewHolder mViewHolder;
 
@@ -49,32 +50,15 @@ public class MainActivity extends AppCompatActivity implements DuoMenuView.OnMen
     }
 
     private void handleDrawer() {
-        DuoDrawerToggle duoDrawerToggle = new DuoDrawerToggle(this,
-                mViewHolder.mDuoDrawerLayout,
-                mViewHolder.mToolbar,
-                R.string.navigation_drawer_open,
-                R.string.navigation_drawer_close);
-
-        mViewHolder.mDuoDrawerLayout.setDrawerListener(duoDrawerToggle);
-        duoDrawerToggle.syncState();
-
+        mDrawerLayout = (CustomDuoDrawer) findViewById(R.id.drawer_layout);
+        setSupportActionBar(mViewHolder.mToolbar);
     }
 
     private void handleMenu() {
         mMenuAdapter = new MenuAdapter(mTitles);
 
-        mViewHolder.mDuoMenuView.setOnMenuClickListener(this);
-        mViewHolder.mDuoMenuView.setAdapter(mMenuAdapter);
-    }
-
-    @Override
-    public void onFooterClicked() {
-        Toast.makeText(this, "onFooterClicked", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onHeaderClicked() {
-        Toast.makeText(this, "onHeaderClicked", Toast.LENGTH_SHORT).show();
+//        mViewHolder.mDuoMenuView.setOnMenuClickListener(this);
+//        mViewHolder.mDuoMenuView.setAdapter(mMenuAdapter);
     }
 
     private void goToFragment(Fragment fragment, boolean addToBackStack) {
@@ -85,6 +69,16 @@ public class MainActivity extends AppCompatActivity implements DuoMenuView.OnMen
         }
 
         transaction.add(R.id.container, fragment).commit();
+    }
+
+    @Override
+    public void onFooterClicked() {
+        Toast.makeText(this, "onFooterClicked", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onHeaderClicked() {
+        Toast.makeText(this, "onHeaderClicked", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -103,18 +97,16 @@ public class MainActivity extends AppCompatActivity implements DuoMenuView.OnMen
         }
 
         // Close the drawer
-        mViewHolder.mDuoDrawerLayout.closeDrawer();
+//        mDrawerLayout.closeDrawer(Gravity.LEFT);
     }
 
     private class ViewHolder {
-        private DuoDrawerLayout mDuoDrawerLayout;
-        private DuoMenuView mDuoMenuView;
+//        private DuoMenuView mDuoMenuView;
         private Toolbar mToolbar;
 
         ViewHolder() {
-            mDuoDrawerLayout = (DuoDrawerLayout) findViewById(R.id.drawer);
-            mDuoMenuView = (DuoMenuView) mDuoDrawerLayout.getMenuView();
             mToolbar = (Toolbar) findViewById(R.id.toolbar);
+//            mDuoMenuView = (DuoMenuView) findViewById(R.id.menu);
         }
     }
 }

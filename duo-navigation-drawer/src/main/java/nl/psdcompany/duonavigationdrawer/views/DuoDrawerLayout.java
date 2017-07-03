@@ -13,6 +13,7 @@ import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ViewDragHelper;
 import android.support.v7.widget.Toolbar;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -32,7 +33,7 @@ import static android.support.v4.widget.DrawerLayout.DrawerListener;
  * Created by PSD on 28-02-17.
  */
 
-public class DuoDrawerLayout extends RelativeLayout {
+public class DuoDrawerLayout extends ViewGroup {
     /**
      * Indicates that any drawers are in an idle, settled state. No animation is in progress.
      */
@@ -164,13 +165,23 @@ public class DuoDrawerLayout extends RelativeLayout {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        super.onLayout(changed, l, t, r, b);
-        handleViews();
-
         mContentView.offsetLeftAndRight((int) mDraggedXOffset);
         mContentView.offsetTopAndBottom((int) mDraggedYOffset);
     }
 
+    @Override
+    protected void onFinishInflate() {
+        super.onFinishInflate();
+        handleViews();
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
+        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
+
+        setMeasuredDimension(widthSize, heightSize);
+    }
 
     /**
      * Checks if it can find the menu & content views with their tags.
@@ -303,7 +314,29 @@ public class DuoDrawerLayout extends RelativeLayout {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        final int action = event.getAction();
+
         mViewDragHelper.processTouchEvent(event);
+
+        switch (action & MotionEventCompat.ACTION_MASK) {
+            case MotionEvent.ACTION_UP: {
+                Log.e("JOE", "ACTION_UP");
+                Log.e("JOE", "mViewDragCallback.mIsPeek: " + mViewDragCallback.mIsPeek);
+
+                if (mViewDragCallback.mIsPeek) {
+                    mViewDragCallback.mIsPeek = false;
+                    closeDrawer();
+                }
+                break;
+            }
+            case MotionEvent.ACTION_CANCEL: {
+                Log.e("JOE", "ACTION_CANCEL");
+                Log.e("JOE", "mViewDragCallback.mIsPeek: " + mViewDragCallback.mIsPeek);
+
+                closeDrawer();
+                break;
+            }
+        }
         return true;
     }
 
@@ -722,6 +755,14 @@ public class DuoDrawerLayout extends RelativeLayout {
 
     private class ViewDragCallback extends ViewDragHelper.Callback {
         boolean mIsEdgeDrag = false;
+        boolean mIsPeek = false;
+
+        private final Runnable mPeekRunnable = new Runnable() {
+            @Override
+            public void run() {
+                peekDrawer();
+            }
+        };
 
         @Override
         public boolean tryCaptureView(View child, int pointerId) {
@@ -758,7 +799,18 @@ public class DuoDrawerLayout extends RelativeLayout {
         @Override
         public void onEdgeTouched(int edgeFlags, int pointerId) {
             super.onEdgeTouched(edgeFlags, pointerId);
+
+            postDelayed(mPeekRunnable, 160);
         }
+
+        private void peekDrawer() {
+            if (mContentView != null && mLockMode == LOCK_MODE_UNLOCKED) {
+                mViewDragHelper.smoothSlideViewTo(mContentView, mViewDragHelper.getEdgeSize(), mContentView.getTop());
+                mIsPeek = true;
+                invalidate();
+            }
+        }
+
 
         @Override
         public int getViewHorizontalDragRange(View child) {
@@ -768,6 +820,7 @@ public class DuoDrawerLayout extends RelativeLayout {
         @Override
         public void onViewReleased(View releasedChild, float xvel, float yvel) {
             super.onViewReleased(releasedChild, xvel, yvel);
+
             if (xvel > 0 || xvel == 0 && mDragOffset > 0.5f) {
                 openDrawer();
             } else {

@@ -1,20 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<nl.psdcompany.duonavigationdrawer.views.DuoDrawerLayout
+<nl.psdcompany.duonavigationdrawer.views.CustomDuoDrawer
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/drawer"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <nl.psdcompany.duonavigationdrawer.views.DuoMenuView
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:tag="@string/tag_menu"
-        app:footer="@layout/duo_view_footer"
-        app:header="@layout/duo_view_header"/>
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimaryDark"
+    tools:context=".MainActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -38,4 +31,15 @@
             android:padding="?attr/listPreferredItemPaddingRight"/>
     </LinearLayout>
 
-</nl.psdcompany.duonavigationdrawer.views.DuoDrawerLayout>
+    <View
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:background="@android:color/black"
+        android:tag="@string/tag_menu"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/white"/>
+</nl.psdcompany.duonavigationdrawer.views.CustomDuoDrawer>
+
