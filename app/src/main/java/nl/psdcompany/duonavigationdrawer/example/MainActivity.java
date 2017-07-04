@@ -58,7 +58,6 @@ public class MainActivity extends AppCompatActivity implements DuoMenuView.OnMen
 
         mDrawerLayout.setDrawerListener(drawerToggle);
         drawerToggle.syncState();
-        setSupportActionBar(mViewHolder.mToolbar);
     }
 
     private void handleMenu() {

@@ -34,7 +34,7 @@ import static android.support.v4.widget.DrawerLayout.DrawerListener;
 
 public class CustomDrawer extends ViewGroup {
     /**
-     * Indicates that any drawers are in an idle, settled state. No animation is in progress.
+     * Indicates that any drawers are in an idle, settled mState. No animation is in progress.
      */
     public static final int STATE_IDLE = ViewDragHelper.STATE_IDLE;
     /**
@@ -71,6 +71,7 @@ public class CustomDrawer extends ViewGroup {
 
     @LayoutRes
     private static final int DEFAULT_ATTRIBUTE_VALUE = -54321;
+
     private static final float CONTENT_SCALE_CLOSED = 1.0f;
     private static final float CONTENT_SCALE_OPEN = 0.7f;
     private static final float CLICK_TO_CLOSE_SCALE = 0.7f;
@@ -78,6 +79,7 @@ public class CustomDrawer extends ViewGroup {
     private static final float MENU_SCALE_OPEN = 1.0f;
     private static final float MENU_ALPHA_CLOSED = 0.0f;
     private static final float MENU_ALPHA_OPEN = 1.0f;
+
     private static final float MARGIN_FACTOR = 0.7f;
 
     private static final float MAX_ATTRIBUTE_MULTIPLIER = 100f;
@@ -458,7 +460,7 @@ public class CustomDrawer extends ViewGroup {
      * Kept for compatibility. {@see #isDrawerMenuOpen()}.
      *
      * @param gravity Ignored
-     * @return true if the drawer view in in an open state
+     * @return true if the drawer view in in an open mState
      */
     @SuppressWarnings("UnusedParameters")
     public boolean isDrawerOpen(int gravity) {
@@ -466,11 +468,11 @@ public class CustomDrawer extends ViewGroup {
     }
 
     /**
-     * Check if the drawer view is currently in an open state.
+     * Check if the drawer view is currently in an open mState.
      * To be considered "open" the drawer must have settled into its fully
-     * visible state.
+     * visible mState.
      *
-     * @return true if the drawer view is in an open state
+     * @return true if the drawer view is in an open mState
      */
     public boolean isDrawerOpen() {
         return mDragOffset == 1;

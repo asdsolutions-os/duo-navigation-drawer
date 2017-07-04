@@ -1,22 +1,26 @@
 package nl.psdcompany.duonavigationdrawer.views;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.Px;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.AccessibilityDelegateCompat;
-import android.support.v4.view.GravityCompat;
 import android.support.v4.view.KeyEventCompat;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewGroupCompat;
 import android.support.v4.view.accessibility.AccessibilityNodeInfoCompat;
 import android.support.v4.widget.ViewDragHelper;
+import android.support.v7.widget.Toolbar;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -26,8 +30,9 @@ import android.view.ViewParent;
 import android.view.accessibility.AccessibilityEvent;
 
 public class DuoDrawerLayout extends ViewGroup {
+
     /**
-     * Indicates that any drawers are in an idle, settled state. No animation is in progress.
+     * Indicates that any drawers are in an idle, settled mState. No animation is in progress.
      */
     public static final int STATE_IDLE = ViewDragHelper.STATE_IDLE;
     /**
@@ -39,15 +44,46 @@ public class DuoDrawerLayout extends ViewGroup {
      */
     public static final int STATE_SETTLING = ViewDragHelper.STATE_SETTLING;
 
+    /**
+     * The drawer is unlocked.
+     */
+    public static final int LOCK_MODE_UNLOCKED = 0;
+    /**
+     * The drawer is locked closed. The user may not open it, though
+     * the app may open it programmatically.
+     */
+    public static final int LOCK_MODE_LOCKED_CLOSED = 1;
+    /**
+     * The drawer is locked open. The user may not close it, though the app
+     * may close it programmatically.
+     */
+    public static final int LOCK_MODE_LOCKED_OPEN = 2;
+
+    private static final int[] LAYOUT_ATTRS = new int[]{
+            android.R.attr.layout_gravity
+    };
+
+    // Tags
     private static final String DUO_TAG_CONTENT = "duo_content";
     private static final String DUO_TAG_SIDE_MENU = "duo_side_menu";
-    private static final String DUO_TAG_NAV_DRAWER_MENU = "duo_nav_drawer_menu";
 
     // Defaults
+    private static final float CONTENT_SCALE_CLOSED = 1.0f;
+    private static final float CONTENT_SCALE_OPEN = 0.7f;
+    private static final float MENU_SCALE_CLOSED = 1.1f;
+    private static final float MENU_SCALE_OPEN = 1.0f;
+    private static final float MENU_ALPHA_CLOSED = 0.0f;
+    private static final float MENU_ALPHA_OPEN = 1.0f;
     private static final int MIN_FLING_VELOCITY = 400;
     private static final int DEFAULT_SCRIM_COLOR = 0x99000000;
 
     // Variables
+    private float mContentScaleClosed = CONTENT_SCALE_CLOSED;
+    private float mContentScaleOpen = CONTENT_SCALE_OPEN;
+    private float mMenuScaleClosed = MENU_SCALE_CLOSED;
+    private float mMenuScaleOpen = MENU_SCALE_OPEN;
+    private float mMenuAlphaClosed = MENU_ALPHA_CLOSED;
+    private float mMenuAlphaOpen = MENU_ALPHA_OPEN;
     private int mScrimColor = DEFAULT_SCRIM_COLOR;
 
     private boolean mChildrenCanceledTouch;
@@ -63,7 +99,6 @@ public class DuoDrawerLayout extends ViewGroup {
     private Paint mScrimPaint = new Paint();
     private View mContentView;
     private View mSideMenuView;
-    private View mDrawerMenuView;
 
     public enum Edge {
         START,
@@ -83,7 +118,7 @@ public class DuoDrawerLayout extends ViewGroup {
         public void onDrawerSlide(View pDrawerView, float pSlideOffset);
 
         /**
-         * Called when a drawer has settled in a completely open state.
+         * Called when a drawer has settled in a completely open mState.
          * The drawer is interactive at this point.
          *
          * @param pDrawerView Drawer view that is now open
@@ -91,17 +126,17 @@ public class DuoDrawerLayout extends ViewGroup {
         public void onDrawerOpened(View pDrawerView);
 
         /**
-         * Called when a drawer has settled in a completely closed state.
+         * Called when a drawer has settled in a completely closed mState.
          *
          * @param pDrawerView Drawer view that is now closed
          */
         public void onDrawerClosed(View pDrawerView);
 
         /**
-         * Called when the drawer motion state changes. The new state will
+         * Called when the drawer motion mState changes. The new mState will
          * be one of {@link #STATE_IDLE}, {@link #STATE_DRAGGING} or {@link #STATE_SETTLING}.
          *
-         * @param pNewState The new drawer motion state
+         * @param pNewState The new drawer motion mState
          */
         public void onDrawerStateChanged(int pNewState);
     }
@@ -204,10 +239,10 @@ public class DuoDrawerLayout extends ViewGroup {
     }
 
     /**
-     * Kept for compatibility. {@see isDrawerListener()}.
+     * Kept for compatibility. {@link #isDrawerMenuOpen()}.
      *
      * @param gravity Ignored
-     * @return true if the drawer menu view in in an open state
+     * @return true if the drawer menu view in in an open mState
      */
     @SuppressWarnings("UnusedParameters")
     public boolean isDrawerMenuOpen(int gravity) {
@@ -215,29 +250,35 @@ public class DuoDrawerLayout extends ViewGroup {
     }
 
     /**
-     * Check if the drawer menu view is currently in an open state.
+     * Check if the drawer menu view is currently in an open mState.
      * To be considered "open" the drawer must have settled into its fully
-     * visible state.
+     * visible mState.
      *
      * @return true if the drawer view is in an open state
      */
     public boolean isDrawerMenuOpen() {
+        if (isInLandscape() && getContentViewOffset() >= 0.99f) {
+            setViewOffset(mContentView, 1f);
+        }
         return getContentViewOffset() == 1;
     }
 
     /**
-     * Check if the side menu view is currently in an open state.
+     * Check if the side menu view is currently in an open mState.
      * To be considered "open" the drawer must have settled into its fully
-     * visible state.
+     * visible mState.
      *
      * @return true if the drawer view is in an open state
      */
     public boolean isSideMenuOpen() {
+        if (isInLandscape() && getSideMenuOffset() >= 0.99f) {
+            setViewOffset(mSideMenuView, 1f);
+        }
         return getSideMenuOffset() == 1;
     }
 
     /**
-     * Kept for compatibility. {@see #isDrawerMenuVisible()}.
+     * Kept for compatibility. {@link #isDrawerMenuVisible()}.
      *
      * @param gravity Ignored.
      */
@@ -265,18 +306,19 @@ public class DuoDrawerLayout extends ViewGroup {
     }
 
     /**
-     * Kept for compatibility. {@see #closeDrawer()}.
+     * Kept for compatibility. {@link #closeDrawer(Edge)}.
      *
      * @param gravity Ignored
      */
     @SuppressWarnings("UnusedParameters")
     public void closeDrawer(int gravity) {
-        final int absGravity = GravityCompat.getAbsoluteGravity(gravity, ViewCompat.getLayoutDirection(this));
-        if (absGravity == Gravity.LEFT || absGravity == Gravity.START) {
+        if (gravity == Gravity.LEFT || gravity == Gravity.START) {
             closeDrawer(Edge.START);
-        } else if (absGravity == Gravity.RIGHT || absGravity == Gravity.END) {
+        } else if (gravity == Gravity.RIGHT || gravity == Gravity.END) {
             closeDrawer(Edge.END);
         }
+
+        invalidate();
     }
 
     /**
@@ -299,7 +341,16 @@ public class DuoDrawerLayout extends ViewGroup {
      *
      * @param pDrawerView Drawer view to close
      */
-    public void closeDrawer(View pDrawerView) {
+    public void closeDrawer(final View pDrawerView) {
+        if (getWidth() == 0) {
+            post(new Runnable() {
+                @Override
+                public void run() {
+                    closeDrawer(pDrawerView);
+                }
+            });
+        }
+
         if (isContentView(pDrawerView)) {
             mViewDragHelperStart.smoothSlideViewTo(mContentView, 0, mContentView.getTop());
         } else if (isSideMenuView(pDrawerView)) {
@@ -319,18 +370,19 @@ public class DuoDrawerLayout extends ViewGroup {
     }
 
     /**
-     * Kept for compatibility. {@see #closeDrawer()}.
+     * Kept for compatibility. {@link #openDrawer(Edge)}.
      *
      * @param gravity Ignored
      */
     @SuppressWarnings("UnusedParameters")
     public void openDrawer(int gravity) {
-        final int absGravity = GravityCompat.getAbsoluteGravity(gravity, ViewCompat.getLayoutDirection(this));
-        if (absGravity == Gravity.LEFT || absGravity == Gravity.START) {
+        if (gravity == Gravity.LEFT || gravity == Gravity.START) {
             openDrawer(Edge.START);
-        } else if (absGravity == Gravity.RIGHT || absGravity == Gravity.END) {
+        } else if (gravity == Gravity.RIGHT || gravity == Gravity.END) {
             openDrawer(Edge.END);
         }
+
+        invalidate();
     }
 
     /**
@@ -353,7 +405,16 @@ public class DuoDrawerLayout extends ViewGroup {
      *
      * @param pDrawerView Drawer view to open
      */
-    public void openDrawer(View pDrawerView) {
+    public void openDrawer(final View pDrawerView) {
+        if (getWidth() == 0) {
+            post(new Runnable() {
+                @Override
+                public void run() {
+                    openDrawer(pDrawerView);
+                }
+            });
+        }
+
         if (isContentView(pDrawerView)) {
             mViewDragHelperStart.smoothSlideViewTo(mContentView, (int) (getWidth() * 0.7f), mContentView.getTop());
         } else if (isSideMenuView(pDrawerView)) {
@@ -413,7 +474,6 @@ public class DuoDrawerLayout extends ViewGroup {
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         mContentView = findViewWithTag(DUO_TAG_CONTENT);
         mSideMenuView = findViewWithTag(DUO_TAG_SIDE_MENU);
-        mDrawerMenuView = findViewWithTag(DUO_TAG_NAV_DRAWER_MENU);
 
         if (mContentView != null) {
             mContentView.bringToFront();
@@ -444,6 +504,8 @@ public class DuoDrawerLayout extends ViewGroup {
                         child.getMeasuredHeight() - lp.bottomMargin);
             }
         }
+
+        setMenuEnabled(false);
     }
 
     @Override
@@ -603,6 +665,86 @@ public class DuoDrawerLayout extends ViewGroup {
         return new LayoutParams(getContext(), attrs);
     }
 
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        final SavedState ss = (SavedState) state;
+        super.onRestoreInstanceState(ss.getSuperState());
+
+        if (ss.getOpenDrawerState() != -1) {
+
+            View toOpen = findOpenDrawer();
+            switch (ss.getOpenDrawerState()) {
+                case 0:
+                    toOpen = findViewWithTag(DUO_TAG_CONTENT);
+                    break;
+                case 1:
+                    toOpen = findViewWithTag(DUO_TAG_SIDE_MENU);
+                    break;
+            }
+
+            if (toOpen != null) {
+                openDrawer(toOpen);
+            }
+        }
+    }
+
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        final Parcelable superState = super.onSaveInstanceState();
+        final SavedState ss = new SavedState(superState);
+        final int childCount = getChildCount();
+
+        int drawerState = -1;
+        for (int i = 0; i < childCount; i++) {
+            final View child = getChildAt(i);
+
+            if (isContentView(child) && (isDrawerMenuOpen() || isDrawerMenuVisible())) {
+                drawerState = 0;
+            } else if (isSideMenuView(child) && (isSideMenuOpen() || isSideMenuVisible())) {
+                drawerState = 1;
+            }
+        }
+
+        ss.setOpenDrawerState(drawerState);
+        return ss;
+    }
+
+    /**
+     * For explanation see: {@link #setViewAndChildrenEnabled(View, boolean)}.
+     *
+     * @param pEnabled True or false, enabled/disabled
+     */
+    private void setMenuEnabled(boolean pEnabled) {
+        for (int i = 0; i < getChildCount(); i++) {
+            final View child = getChildAt(i);
+            if (!isContentView(child) && !isSideMenuView(child)) {
+                setViewAndChildrenEnabled(child, pEnabled);
+            }
+        }
+    }
+
+    /**
+     * Disables/Enables a view and all of its child views.
+     * Leaves the toolbar enabled at all times.
+     *
+     * @param view    The view to be disabled/enabled
+     * @param enabled True or false, enabled/disabled
+     */
+    private void setViewAndChildrenEnabled(View view, boolean enabled) {
+        view.setEnabled(enabled);
+        if (view instanceof ViewGroup) {
+            ViewGroup viewGroup = (ViewGroup) view;
+            for (int i = 0; i < viewGroup.getChildCount(); i++) {
+                View child = viewGroup.getChildAt(i);
+                if (child instanceof Toolbar) {
+                    setViewAndChildrenEnabled(child, true);
+                } else {
+                    setViewAndChildrenEnabled(child, enabled);
+                }
+            }
+        }
+    }
+
     private float getSideMenuOffset() {
         if (mSideMenuView == null) {
             mSideMenuView = findViewWithTag(DUO_TAG_SIDE_MENU);
@@ -627,15 +769,19 @@ public class DuoDrawerLayout extends ViewGroup {
         return pView != null && pView.getTag() != null && pView.getTag().equals(DUO_TAG_SIDE_MENU);
     }
 
+    private boolean isInLandscape() {
+        return getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+    }
+
     private float map(float x, float inMin, float inMax, float outMin, float outMax) {
         return (x - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
     }
 
     private View findOpenDrawer() {
-        if (((LayoutParams) mSideMenuView.getLayoutParams()).getOffset() == 1) {
+        if (isSideMenuOpen()) {
             return mSideMenuView;
-        } else if (((LayoutParams) mContentView.getLayoutParams()).getOffset() == 1) {
-            return mSideMenuView;
+        } else if (isDrawerMenuOpen()) {
+            return mContentView;
         } else return null;
     }
 
@@ -659,10 +805,12 @@ public class DuoDrawerLayout extends ViewGroup {
             if (pEdge == Edge.END && layoutParamsEnd.getOffset() == 1) {
                 dispatchOnDrawerOpened(mSideMenuView);
             } else if (pEdge == Edge.START && layoutParamsStart.getOffset() == 1) {
+                setMenuEnabled(true);
                 dispatchOnDrawerOpened(mContentView);
             } else if (pEdge == Edge.END && layoutParamsEnd.getOffset() == 0) {
                 dispatchOnDrawerClosed(mSideMenuView);
             } else if (pEdge == Edge.START && layoutParamsStart.getOffset() == 0) {
+                setMenuEnabled(false);
                 dispatchOnDrawerClosed(mContentView);
             }
         }
@@ -722,7 +870,7 @@ public class DuoDrawerLayout extends ViewGroup {
                 if (mEdge == Edge.START) {
                     if (mViewDragHelperStart.isEdgeTouched(ViewDragHelper.EDGE_LEFT, pointerId) && getContentViewOffset() != 1f) {
                         return true;
-                    } else if (getContentViewOffset() == 1f) {
+                    } else if (isDrawerMenuOpen()) {
                         return true;
                     }
                 } else if (mEdge == Edge.END
@@ -772,12 +920,12 @@ public class DuoDrawerLayout extends ViewGroup {
                 mContentView.setScaleX(scaleFactorContent);
                 mContentView.setScaleY(scaleFactorContent);
 
-                float scaleFactorMenu = map(offset, 0, 1, 1.f, 0.7f);
-                mDrawerMenuView.setScaleX(scaleFactorMenu);
-                mDrawerMenuView.setScaleY(scaleFactorMenu);
-
-                float alphaValue = map(offset, 0, 1, 1.f, 0.7f);
-                mDrawerMenuView.setAlpha(alphaValue);
+//                float scaleFactorMenu = map(offset, 0, 1, 1.f, 0.7f);
+//                mDrawerMenuView.setScaleX(scaleFactorMenu);
+//                mDrawerMenuView.setScaleY(scaleFactorMenu);
+//
+//                float alphaValue = map(offset, 0, 1, 1.f, 0.7f);
+//                mDrawerMenuView.setAlpha(alphaValue);
             } else {
                 offset = map(DuoDrawerLayout.this.getWidth() - left, 0, changedView.getWidth(), 0, 1);
             }
@@ -868,6 +1016,50 @@ public class DuoDrawerLayout extends ViewGroup {
             mOffset = pOffset;
         }
     }
+
+    /**
+     * State persisted across instances
+     */
+    private static class SavedState extends BaseSavedState {
+        private int mOpenDrawerState = -1;
+
+        SavedState(Parcel in) {
+            super(in);
+            mOpenDrawerState = in.readInt();
+        }
+
+        SavedState(Parcelable superState) {
+            super(superState);
+        }
+
+        int getOpenDrawerState() {
+            return mOpenDrawerState;
+        }
+
+        void setOpenDrawerState(int pOpenDrawerState) {
+            mOpenDrawerState = pOpenDrawerState;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            super.writeToParcel(dest, flags);
+            dest.writeInt(mOpenDrawerState);
+        }
+
+        public static final Parcelable.Creator<SavedState> CREATOR =
+                new Parcelable.Creator<SavedState>() {
+                    @Override
+                    public SavedState createFromParcel(Parcel source) {
+                        return new SavedState(source);
+                    }
+
+                    @Override
+                    public SavedState[] newArray(int size) {
+                        return new SavedState[size];
+                    }
+                };
+    }
+
 
     private class AccessibilityDelegate extends AccessibilityDelegateCompat {
         private final Rect mTmpRect = new Rect();
