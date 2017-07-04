@@ -55,7 +55,8 @@ import static android.support.v4.widget.DrawerLayout.OnClickListener;
  * {@link android.support.v7.appcompat.R.styleable#DrawerArrowToggle drawerArrowStyle} in your
  * ActionBar theme.
  */
-public class DuoDrawerToggle implements DrawerListener {
+public class DuoDrawerToggle implements DuoDrawerLayout.DrawerListener {
+    private static final String DUO_TAG_SIDE_MENU = "duo_side_menu";
 
     /**
      * Allows an implementing Activity to return an {@link DuoDrawerToggle.Delegate} to use
@@ -225,14 +226,14 @@ public class DuoDrawerToggle implements DrawerListener {
      * (For example, if you stop forwarding appropriate drawer events for a period of time.)</p>
      */
     public void syncState() {
-        if (mDuoDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+        if (mDuoDrawerLayout.isDrawerMenuOpen(GravityCompat.START)) {
             mSlider.setPosition(1);
         } else {
             mSlider.setPosition(0);
         }
         if (mDrawerIndicatorEnabled) {
             setActionBarUpIndicator((Drawable) mSlider,
-                    mDuoDrawerLayout.isDrawerOpen(GravityCompat.START) ?
+                    mDuoDrawerLayout.isDrawerMenuOpen(GravityCompat.START) ?
                             mCloseDrawerContentDescRes : mOpenDrawerContentDescRes);
         }
     }
@@ -271,7 +272,7 @@ public class DuoDrawerToggle implements DrawerListener {
     }
 
     private void toggle() {
-        if (mDuoDrawerLayout.isDrawerVisible(GravityCompat.START)) {
+        if (mDuoDrawerLayout.isDrawerMenuVisible(GravityCompat.START)) {
             mDuoDrawerLayout.closeDrawer(GravityCompat.START);
         } else {
             mDuoDrawerLayout.openDrawer(GravityCompat.START);
@@ -344,7 +345,7 @@ public class DuoDrawerToggle implements DrawerListener {
         if (enable != mDrawerIndicatorEnabled) {
             if (enable) {
                 setActionBarUpIndicator((Drawable) mSlider,
-                        mDuoDrawerLayout.isDrawerOpen(GravityCompat.START) ?
+                        mDuoDrawerLayout.isDrawerMenuOpen(GravityCompat.START) ?
                                 mCloseDrawerContentDescRes : mOpenDrawerContentDescRes);
             } else {
                 setActionBarUpIndicator(mHomeAsUpIndicator, 0);
@@ -359,26 +360,13 @@ public class DuoDrawerToggle implements DrawerListener {
      * DuoDrawerToggle instance directly as your DrawerLayout's listener, you should call
      * through to this method from your own listener object.
      *
-     * @param drawerView  The child view that was moved
-     * @param slideOffset The new offset of this drawer within its range, from 0-1
+     * @param pDrawerView  The child view that was moved
+     * @param pSlideOffset The new offset of this drawer within its range, from 0-1
      */
     @Override
-    public void onDrawerSlide(View drawerView, float slideOffset) {
-        mSlider.setPosition(Math.min(1f, Math.max(0, slideOffset)));
-    }
-
-    /**
-     * {@link DrawerListener} callback method. If you do not use your
-     * DuoDrawerToggle instance directly as your DrawerLayout's listener, you should call
-     * through to this method from your own listener object.
-     *
-     * @param drawerView Drawer view that is now open
-     */
-    @Override
-    public void onDrawerOpened(View drawerView) {
-        mSlider.setPosition(1);
-        if (mDrawerIndicatorEnabled) {
-            setActionBarDescription(mCloseDrawerContentDescRes);
+    public void onDrawerSlide(View pDrawerView, float pSlideOffset) {
+        if (!pDrawerView.getTag().equals(DUO_TAG_SIDE_MENU)) {
+            mSlider.setPosition(Math.min(1f, Math.max(0, pSlideOffset)));
         }
     }
 
@@ -387,13 +375,32 @@ public class DuoDrawerToggle implements DrawerListener {
      * DuoDrawerToggle instance directly as your DrawerLayout's listener, you should call
      * through to this method from your own listener object.
      *
-     * @param drawerView Drawer view that is now closed
+     * @param pDrawerView Drawer view that is now open
      */
     @Override
-    public void onDrawerClosed(View drawerView) {
-        mSlider.setPosition(0);
-        if (mDrawerIndicatorEnabled) {
-            setActionBarDescription(mOpenDrawerContentDescRes);
+    public void onDrawerOpened(View pDrawerView) {
+        if (!pDrawerView.getTag().equals(DUO_TAG_SIDE_MENU)) {
+            mSlider.setPosition(1);
+            if (mDrawerIndicatorEnabled) {
+                setActionBarDescription(mCloseDrawerContentDescRes);
+            }
+        }
+    }
+
+    /**
+     * {@link DrawerListener} callback method. If you do not use your
+     * DuoDrawerToggle instance directly as your DrawerLayout's listener, you should call
+     * through to this method from your own listener object.
+     *
+     * @param pDrawerView Drawer view that is now closed
+     */
+    @Override
+    public void onDrawerClosed(View pDrawerView) {
+        if (!pDrawerView.getTag().equals(DUO_TAG_SIDE_MENU)) {
+            mSlider.setPosition(0);
+            if (mDrawerIndicatorEnabled) {
+                setActionBarDescription(mOpenDrawerContentDescRes);
+            }
         }
     }
 

@@ -1,37 +1,38 @@
 package nl.psdcompany.duonavigationdrawer.views;
 
 import android.content.Context;
-import android.graphics.Rect;
+import android.content.res.Configuration;
+import android.content.res.TypedArray;
 import android.os.Build;
-import android.os.Parcel;
+import android.os.Bundle;
 import android.os.Parcelable;
-import android.os.SystemClock;
-import android.support.annotation.Px;
-import android.support.v4.view.AccessibilityDelegateCompat;
+import android.support.annotation.IntDef;
+import android.support.annotation.LayoutRes;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.ViewCompat;
-import android.support.v4.view.ViewGroupCompat;
-import android.support.v4.view.accessibility.AccessibilityNodeInfoCompat;
 import android.support.v4.widget.ViewDragHelper;
+import android.support.v7.widget.Toolbar;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewParent;
-import android.view.accessibility.AccessibilityEvent;
+import android.view.ViewTreeObserver;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+import nl.psdcompany.psd.duonavigationdrawer.R;
+
+import static android.support.v4.widget.DrawerLayout.DrawerListener;
 
 /**
- * Created by PSD on 28-06-17.
+ * Created by PSD on 28-02-17.
  */
 
 public class CustomDrawer extends ViewGroup {
-    private static final String TAG = CustomDrawer.class.getSimpleName();
-    private static final String TAG_MENU = "menu";
-    private static final String TAG_CONTENT = "content";
-
     /**
      * Indicates that any drawers are in an idle, settled state. No animation is in progress.
      */
@@ -44,7 +45,6 @@ public class CustomDrawer extends ViewGroup {
      * Indicates that a drawer is in the process of settling to a final position.
      */
     public static final int STATE_SETTLING = ViewDragHelper.STATE_SETTLING;
-
     /**
      * The drawer is unlocked.
      */
@@ -63,60 +63,56 @@ public class CustomDrawer extends ViewGroup {
     /**
      * Length of time to delay before peeking the drawer.
      */
-    private static final int PEEK_DELAY = 160; // ms
-    /**
-     * Minimum velocity that will be detected as a fling
-     */
-    private static final int MIN_FLING_VELOCITY = 400; // dips per second
-    /**
-     * Experimental feature.
-     */
-    private static final boolean ALLOW_EDGE_LOCK = false;
+    private static final int PEEK_DELAY = 160;
 
-    private static final boolean CHILDREN_DISALLOW_INTERCEPT = true;
-    private static final float TOUCH_SLOP_SENSITIVITY = 1.f;
-    private static final int DEFAULT_SCRIM_COLOR = 0x99000000;
-    private static final int MIN_DRAWER_MARGIN = 64; // dp
+    private static final String TAG_MENU = "menu";
+    private static final String TAG_CONTENT = "content";
+    private static final String TAG_OVERLAY = "overlay";
 
-    private static final int[] LAYOUT_ATTRS = new int[]{
-            android.R.attr.layout_gravity
-    };
+    @LayoutRes
+    private static final int DEFAULT_ATTRIBUTE_VALUE = -54321;
+    private static final float CONTENT_SCALE_CLOSED = 1.0f;
+    private static final float CONTENT_SCALE_OPEN = 0.7f;
+    private static final float CLICK_TO_CLOSE_SCALE = 0.7f;
+    private static final float MENU_SCALE_CLOSED = 1.1f;
+    private static final float MENU_SCALE_OPEN = 1.0f;
+    private static final float MENU_ALPHA_CLOSED = 0.0f;
+    private static final float MENU_ALPHA_OPEN = 1.0f;
+    private static final float MARGIN_FACTOR = 0.7f;
+
+    private static final float MAX_ATTRIBUTE_MULTIPLIER = 100f;
+    private static final float MAX_CLICK_RANGE = 300f;
+
+    private float mContentScaleClosed = CONTENT_SCALE_CLOSED;
+    private float mContentScaleOpen = CONTENT_SCALE_OPEN;
+    private float mMenuScaleClosed = MENU_SCALE_CLOSED;
+    private float mMenuScaleOpen = MENU_SCALE_OPEN;
+    private float mMenuAlphaClosed = MENU_ALPHA_CLOSED;
+    private float mMenuAlphaOpen = MENU_ALPHA_OPEN;
+    private float mMarginFactor = MARGIN_FACTOR;
+    private float mClickToCloseScale = CLICK_TO_CLOSE_SCALE;
+
+    private float mDragOffset;
+    private float mDraggedXOffset;
+    private float mDraggedYOffset;
+
+    @LockMode
+    private int mLockMode;
+    @State
+    private int mDrawerState = STATE_IDLE;
+
+    @LayoutRes
+    private int mMenuViewId;
+    @LayoutRes
+    private int mContentViewId;
+
+    private ViewDragHelper mViewDragHelper;
+    private LayoutInflater mLayoutInflater;
+    private DrawerListener mDrawerListener;
+    private ViewDragCallback mViewDragCallback;
 
     private View mContentView;
-    private View mDrawerView;
-
-    private int mMinDrawerMargin;
-    private boolean mInLayout;
-    private boolean mFirstLayout = true;
-    private boolean mDisallowInterceptRequested;
-    private boolean mChildrenCanceledTouch;
-    private float mInitialMotionX;
-    private float mInitialMotionY;
-
-    // My variables
-    private ViewDragHelper mViewDragHelperRight;
-    private ViewDragHelper mViewDragHelperLeft;
-    private ViewDragCallback mViewDragCallbackRight;
-    private ViewDragCallback mViewDragCallbackLeft;
-
-    private ContentListener mContentListener;
-
-    public enum ContentState {
-        OPENED_LEFT,
-        OPENED_RIGHT,
-        CLOSED
-    }
-
-    private ContentState mCurrentContentState;
-    private int mContentState;
-
-    public enum Edge {
-        RIGHT,
-        LEFT,
-    }
-
-    private float mSlideMarginFactor = 0.7f;
-    private float mContentViewOffset = 0.f;
+    private View mMenuView;
 
     public CustomDrawer(Context context) {
         this(context, null);
@@ -126,32 +122,40 @@ public class CustomDrawer extends ViewGroup {
         this(context, attrs, 0);
     }
 
-    public CustomDrawer(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
+    public CustomDrawer(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+        readAttributes(attrs);
         initialize();
     }
 
+    private void readAttributes(AttributeSet attributeSet) {
+        TypedArray typedArray = getContext().obtainStyledAttributes(attributeSet, R.styleable.DuoDrawerLayout);
+
+        try {
+            mMenuViewId = typedArray.getResourceId(R.styleable.DuoDrawerLayout_menu, DEFAULT_ATTRIBUTE_VALUE);
+            mContentViewId = typedArray.getResourceId(R.styleable.DuoDrawerLayout_content, DEFAULT_ATTRIBUTE_VALUE);
+            mContentScaleClosed = typedArray.getFloat(R.styleable.DuoDrawerLayout_contentScaleClosed, CONTENT_SCALE_CLOSED);
+            mContentScaleOpen = typedArray.getFloat(R.styleable.DuoDrawerLayout_contentScaleOpen, CONTENT_SCALE_OPEN);
+            mMenuScaleClosed = typedArray.getFloat(R.styleable.DuoDrawerLayout_menuScaleClosed, MENU_SCALE_CLOSED);
+            mMenuScaleOpen = typedArray.getFloat(R.styleable.DuoDrawerLayout_menuScaleOpen, MENU_SCALE_OPEN);
+            mMenuAlphaClosed = typedArray.getFloat(R.styleable.DuoDrawerLayout_menuAlphaClosed, MENU_ALPHA_CLOSED);
+            mMenuAlphaOpen = typedArray.getFloat(R.styleable.DuoDrawerLayout_menuAlphaOpen, MENU_ALPHA_OPEN);
+            mMarginFactor = typedArray.getFloat(R.styleable.DuoDrawerLayout_marginFactor, MARGIN_FACTOR);
+            mClickToCloseScale = typedArray.getFloat(R.styleable.DuoDrawerLayout_clickToCloseScale, CLICK_TO_CLOSE_SCALE);
+        } finally {
+            typedArray.recycle();
+        }
+    }
+
     private void initialize() {
-        final float density = getResources().getDisplayMetrics().density;
-        mMinDrawerMargin = (int) (MIN_DRAWER_MARGIN * density + 0.5f);
-        final float minVel = MIN_FLING_VELOCITY * density;
+        mLayoutInflater = LayoutInflater.from(getContext());
+        mViewDragCallback = new ViewDragCallback();
+        mViewDragHelper = ViewDragHelper.create(this, 1.0f, mViewDragCallback);
+        mViewDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_LEFT);
 
-        mViewDragCallbackLeft = new ViewDragCallback(Edge.LEFT);
-        mViewDragHelperLeft = ViewDragHelper.create(this, TOUCH_SLOP_SENSITIVITY, mViewDragCallbackLeft);
-        mViewDragHelperLeft.setEdgeTrackingEnabled(ViewDragHelper.EDGE_LEFT);
-        mViewDragHelperLeft.setMinVelocity(minVel);
-        mViewDragCallbackLeft.setViewDragHelper(mViewDragHelperLeft);
-
-        mViewDragCallbackRight = new ViewDragCallback(Edge.RIGHT);
-        mViewDragHelperRight = ViewDragHelper.create(this, TOUCH_SLOP_SENSITIVITY, mViewDragCallbackRight);
-        mViewDragHelperRight.setEdgeTrackingEnabled(ViewDragHelper.EDGE_RIGHT);
-        mViewDragHelperRight.setMinVelocity(minVel);
-        mViewDragCallbackRight.setViewDragHelper(mViewDragHelperRight);
-
-        setFocusableInTouchMode(true);
-
-        ViewCompat.setAccessibilityDelegate(this, new AccessibilityDelegate());
-        ViewGroupCompat.setMotionEventSplittingEnabled(this, false);
+        this.setFocusableInTouchMode(true);
+        this.setClipChildren(false);
+        this.requestFocus();
     }
 
     private float map(float x, float inMin, float inMax, float outMin, float outMax) {
@@ -159,432 +163,116 @@ public class CustomDrawer extends ViewGroup {
     }
 
     @Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        mContentView.offsetLeftAndRight((int) mDraggedXOffset);
+        mContentView.offsetTopAndBottom((int) mDraggedYOffset);
+    }
+
+    @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
-
-        mContentView = findViewWithTag("content");
-        mDrawerView = findViewWithTag("menu");
-        bringChildToFront(mContentView);
-        LayoutParams layoutParams = (LayoutParams) mContentView.getLayoutParams();
-    }
-
-    /**
-     * Resolve the shared state of the content from the component ViewDragHelpers.
-     * Should be called whenever a ViewDragHelper's state changes.
-     */
-    void updateContentState(Edge pEdge, int activeState, ViewDragHelper pViewDragHelper) {
-        final int viewDragState = pViewDragHelper.getViewDragState();
-
-        final int state;
-        if (viewDragState == STATE_DRAGGING) {
-            state = STATE_DRAGGING;
-        } else if (viewDragState == STATE_SETTLING) {
-            state = STATE_SETTLING;
-        } else {
-            state = STATE_IDLE;
-        }
-
-        if (mContentView != null && activeState == STATE_IDLE) {
-            if (pEdge == Edge.LEFT) {
-                dispatchOnContentOpened(ContentState.OPENED_RIGHT);
-            } else if (pEdge == Edge.RIGHT) {
-                dispatchOnContentOpened(ContentState.OPENED_LEFT);
-            }
-        }
-
-        if (state != mContentState) {
-            mContentState = state;
-            if (mContentListener != null) {
-                mContentListener.onContentStateChanged(state);
-            }
-        }
-    }
-
-    void dispatchOnContentClosed() {
-        mCurrentContentState = ContentState.CLOSED;
-
-        if (mContentListener != null) {
-            mContentListener.onContentClosed();
-        }
-        sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED);
-    }
-
-    void dispatchOnContentOpened(ContentState pContentState) {
-        mCurrentContentState = pContentState;
-
-        if (mContentListener != null) {
-            mContentListener.onContentOpened(pContentState);
-        }
-        mContentView.sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED);
-    }
-
-    void dispatchOnContentSlide(float slideOffset) {
-        if (mContentListener != null) {
-            mContentListener.onContentSlide(slideOffset);
-        }
-    }
-
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        mFirstLayout = true;
-    }
-
-    @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        mFirstLayout = true;
+        handleViews();
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
-        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
         int heightSize = MeasureSpec.getSize(heightMeasureSpec);
 
-        if (widthMode != MeasureSpec.EXACTLY || heightMode != MeasureSpec.EXACTLY) {
-            if (isInEditMode()) {
-                if (widthMode == MeasureSpec.UNSPECIFIED) {
-                    widthSize = 300;
-                }
-                if (heightMode == MeasureSpec.UNSPECIFIED) {
-                    heightSize = 300;
-                }
-            } else {
-                throw new IllegalArgumentException(
-                        "DrawerLayout must be measured with MeasureSpec.EXACTLY.");
-            }
-        }
-
         setMeasuredDimension(widthSize, heightSize);
-
-        final int childCount = getChildCount();
-        for (int i = 0; i < childCount; i++) {
-            final View child = getChildAt(i);
-            if (child.getVisibility() == GONE) {
-                continue;
-            }
-
-            final LayoutParams lp = (LayoutParams) child.getLayoutParams();
-
-            if (isContentView(child)) {
-                final int contentWidthSpec =
-                        MeasureSpec.makeMeasureSpec(widthSize - lp.leftMargin - lp.rightMargin, MeasureSpec.EXACTLY);
-                final int contentHeightSpec =
-                        MeasureSpec.makeMeasureSpec(heightSize - lp.topMargin - lp.bottomMargin, MeasureSpec.EXACTLY);
-                child.measure(contentWidthSpec, contentHeightSpec);
-            } else if (isDrawerView(child)) {
-                final int drawerWidthSpec =
-                        MeasureSpec.makeMeasureSpec(widthSize - lp.leftMargin - lp.rightMargin, MeasureSpec.EXACTLY);
-                final int drawerHeightSpec =
-                        MeasureSpec.makeMeasureSpec(heightSize - lp.topMargin - lp.bottomMargin, MeasureSpec.EXACTLY);
-                child.measure(drawerWidthSpec, drawerHeightSpec);
-            } else {
-                Log.e(TAG, "Child at index " + i + "is not content and not drawer");
-//                throw new IllegalStateException("Child " + child + " at index " + i +
-//                        " does not have a valid layout_gravity - must be Gravity.LEFT, " +
-//                        "Gravity.RIGHT or Gravity.NO_GRAVITY");
-            }
-        }
     }
-
-    @Override
-    protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        mInLayout = true;
-        final int width = r - l;
-        final int childCount = getChildCount();
-        for (int i = 0; i < childCount; i++) {
-            final View child = getChildAt(i);
-            if (child.getVisibility() == GONE) {
-                continue;
-            }
-
-            final LayoutParams lp = (LayoutParams) child.getLayoutParams();
-
-            child.layout(lp.leftMargin, lp.topMargin,
-                    lp.leftMargin + child.getMeasuredWidth(),
-                    lp.topMargin + child.getMeasuredHeight());
-
-//            if (isDrawerView(child)) {
-//                child.layout(lp.leftMargin, lp.topMargin,
-//                        lp.leftMargin + child.getMeasuredWidth(),
-//                        lp.topMargin + child.getMeasuredHeight());
-//            }
-//            else {
-//                final int childWidth = child.getMeasuredWidth();
-//                final int childHeight = child.getMeasuredHeight();
-//
-//                int childLeft;
-//                final float newOffset;
-//                if (checkDrawerViewAbsoluteGravity(child, Gravity.LEFT)) {
-//                    childLeft = -childWidth + (int) (childWidth * lp.onScreen);
-//                    newOffset = (float) (childWidth + childLeft) / childWidth;
-//                } else { // Right; onMeasure checked for us.
-//                    childLeft = width - (int) (childWidth * lp.onScreen);
-//                    newOffset = (float) (width - childLeft) / childWidth;
-//                }
-//                final boolean changeOffset = newOffset != lp.onScreen;
-//                final int vgrav = lp.gravity & Gravity.VERTICAL_GRAVITY_MASK;
-//                switch (vgrav) {
-//                    default:
-//                    case Gravity.TOP: {
-//                        child.layout(childLeft, lp.topMargin, childLeft + childWidth,
-//                                lp.topMargin + childHeight);
-//                        break;
-//                    }
-//                    case Gravity.BOTTOM: {
-//                        final int height = b - t;
-//                        child.layout(childLeft,
-//                                height - lp.bottomMargin - child.getMeasuredHeight(),
-//                                childLeft + childWidth,
-//                                height - lp.bottomMargin);
-//                        break;
-//                    }
-//                    case Gravity.CENTER_VERTICAL: {
-//                        final int height = b - t;
-//                        int childTop = (height - childHeight) / 2;
-//                        // Offset for margins. If things don't fit right because of
-//                        // bad measurement before, oh well.
-//                        if (childTop < lp.topMargin) {
-//                            childTop = lp.topMargin;
-//                        } else if (childTop + childHeight > height - lp.bottomMargin) {
-//                            childTop = height - lp.bottomMargin - childHeight;
-//                        }
-//                        child.layout(childLeft, childTop, childLeft + childWidth,
-//                                childTop + childHeight);
-//                        break;
-//                    }
-//                }
-//                if (changeOffset) {
-//                    setDrawerViewOffset(child, newOffset);
-//                }
-//                final int newVisibility = lp.onScreen > 0 ? VISIBLE : INVISIBLE;
-//                if (child.getVisibility() != newVisibility) {
-//                    child.setVisibility(newVisibility);
-//                }
-//            }
-        }
-        mInLayout = false;
-        mFirstLayout = false;
-    }
-
-    @Override
-    public void requestLayout() {
-        if (!mInLayout) {
-            super.requestLayout();
-        }
-    }
-
-    @Override
-    public void computeScroll() {
-        if (mViewDragHelperLeft.continueSettling(true) | mViewDragHelperRight.continueSettling(true)) {
-            ViewCompat.postInvalidateOnAnimation(this);
-        }
-    }
-
-    boolean isContentView(View child) {
-        return child.getTag().equals(TAG_CONTENT);
-    }
-
-    boolean isDrawerView(View child) {
-        return child.getTag().equals(TAG_MENU);
-    }
-
-    @Override
-    public boolean onInterceptTouchEvent(MotionEvent ev) {
-        final int action = MotionEventCompat.getActionMasked(ev);
-
-        final boolean interceptForDrag = mViewDragHelperLeft.shouldInterceptTouchEvent(ev)
-                | mViewDragHelperRight.shouldInterceptTouchEvent(ev);
-
-//        boolean interceptForTap = false;
-
-        switch (action) {
-//            case MotionEvent.ACTION_DOWN: {
-//                final float x = ev.getX();
-//                final float y = ev.getY();
-//                mInitialMotionX = x;
-//                mInitialMotionY = y;
-//                if (isContentView(mViewDragHelperLeft.findTopChildUnder((int) x, (int) y))) {
-//                    interceptForTap = true;
-//                }
-//                mDisallowInterceptRequested = false;
-//                mChildrenCanceledTouch = false;
-//                break;
-//            }
-//            case MotionEvent.ACTION_MOVE: {
-//                // If we cross the touch slop, don't perform the delayed peek for an edge touch.
-//                if (mViewDragHelperLeft.checkTouchSlop(ViewDragHelper.DIRECTION_ALL)) {
-//                    mViewDragCallbackLeft.removeCallbacks();
-//                }
-//                break;
-//            }
-            case MotionEvent.ACTION_CANCEL:
-            case MotionEvent.ACTION_UP: {
-                closeDrawer();
-//                mDisallowInterceptRequested = false;
-//                mChildrenCanceledTouch = false;
-            }
-        }
-        return interceptForDrag;// || interceptForTap || mChildrenCanceledTouch;// || hasPeekingDrawer() || mChildrenCanceledTouch;
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent ev) {
-        mViewDragHelperLeft.processTouchEvent(ev);
-        mViewDragHelperRight.processTouchEvent(ev);
-
-//        final int action = ev.getAction();
-//
-//        switch (action & MotionEventCompat.ACTION_MASK) {
-//            case MotionEvent.ACTION_DOWN: {
-//                final float x = ev.getX();
-//                final float y = ev.getY();
-//                mInitialMotionX = x;
-//                mInitialMotionY = y;
-//                mDisallowInterceptRequested = false;
-//                mChildrenCanceledTouch = false;
-//                break;
-//            }
-//            case MotionEvent.ACTION_UP: {
-//                final float x = ev.getX();
-//                final float y = ev.getY();
-//                boolean peekingOnly = true;
-//                final View touchedView = mViewDragHelperLeft.findTopChildUnder((int) x, (int) y);
-//                if (touchedView != null && isContentView(touchedView)) {
-//                    final float dx = x - mInitialMotionX;
-//                    final float dy = y - mInitialMotionY;
-//                    final int slop = mViewDragHelperLeft.getTouchSlop();
-//                    if (dx * dx + dy * dy < slop * slop) {
-//                        // Taps close a dimmed open drawer but only if it isn't locked open.
-//                        peekingOnly = false;
-//                    }
-//                }
-//                closeDrawer();
-//                mDisallowInterceptRequested = false;
-//                break;
-//            }
-//            case MotionEvent.ACTION_CANCEL: {
-//                closeDrawer();
-//                mDisallowInterceptRequested = false;
-//                mChildrenCanceledTouch = false;
-//                break;
-//            }
-//        }
-        return true;
-    }
-
-//    public void requestDisallowInterceptTouchEvent(boolean disallowIntercept) {
-//        if (CHILDREN_DISALLOW_INTERCEPT
-//                || (!mViewDragHelperLeft.isEdgeTouched(ViewDragHelper.EDGE_LEFT)
-//                && !mViewDragHelperRight.isEdgeTouched(ViewDragHelper.EDGE_RIGHT))) {
-//            // If we have an edge touch we want to skip this and track it for later instead.
-//            super.requestDisallowInterceptTouchEvent(disallowIntercept);
-//        }
-//        mDisallowInterceptRequested = disallowIntercept;
-//        if (disallowIntercept) {
-//            closeDrawer();
-//        }
-//    }
 
     /**
-     * Open the drawer by animating the content view out of the screen.
-     *
-     * @param pEdge The edge the content has to start animating from.
+     * Checks if it can find the menu & content views with their tags.
+     * If this fails it will check for the corresponding attribute.
+     * If this fails it wil throw an IllegalStateException.
      */
-    public void openDrawer(Edge pEdge) {
+    private void handleViews() {
+        for (int i = 0; i < getChildCount(); i++) {
+            View view = getChildAt(i);
+
+            try {
+                String tag = (String) view.getTag();
+                if (tag.equals(TAG_CONTENT)) {
+                    mContentView = view;
+                } else if (tag.equals(TAG_MENU)) {
+                    mMenuView = view;
+                }
+            } catch (Exception ignored) {
+            }
+            if (mContentView != null && mMenuView != null) break;
+        }
+
+        if (mMenuView == null) {
+            checkForMenuAttribute();
+        }
+
         if (mContentView == null) {
-            mContentView = findViewWithTag(TAG_CONTENT);
+            checkForContentAttribute();
         }
 
-        if (pEdge.equals(Edge.LEFT)) {
-            // Left edge so we animate the content to the right
-            mViewDragHelperLeft.smoothSlideViewTo(mContentView, (int) (getWidth() * mSlideMarginFactor), mContentView.getTop());
-        } else {
-            // Right edge so we animate the content to the left
-            mViewDragHelperRight.smoothSlideViewTo(mContentView, (int) (getWidth() - (getWidth() * mSlideMarginFactor)), mContentView.getTop());
+        if (mDragOffset == 0) {
+            setViewAndChildrenEnabled(mContentView, true);
+            setViewAndChildrenEnabled(mMenuView, false);
         }
-        invalidate();
     }
 
     /**
-     * Close the drawer view by animating it back into the view.
+     * Checks if it can inflate the menu view with its corresponding attribute.
+     * If this fails it wil throw an IllegalStateException.
      */
-    public void closeDrawer() {
-        if (mContentView == null) {
-            mContentView = findViewWithTag(TAG_CONTENT);
+    private void checkForMenuAttribute() {
+        if (mMenuViewId == DEFAULT_ATTRIBUTE_VALUE) {
+            throw new IllegalStateException("Missing menu layout. " +
+                    "Set a \"menu\" tag on the menu layout (in XML android:xml=\"menu\"). " +
+                    "Or set the \"app:menu\" attribute on the drawer layout.");
         }
 
-        if (mCurrentContentState == ContentState.OPENED_LEFT) {
-            // Content is at the left of the screen so animate the content back to the middle
-            mViewDragHelperLeft.smoothSlideViewTo(mContentView, CustomDrawer.this.getWidth(), mContentView.getTop());
-        } else if (mCurrentContentState == ContentState.OPENED_RIGHT) {
-            // Content is at the right of the screen so animate the content back to the middle
-            mViewDragHelperRight.smoothSlideViewTo(mContentView, 0, mContentView.getTop());
+        mMenuView = mLayoutInflater.inflate(mMenuViewId, this, false);
+
+        if (mMenuView != null) {
+            mMenuView.setTag(TAG_MENU);
+            addView(mMenuView);
         }
-        invalidate();
     }
 
     /**
-     * Check if the content view is currently in an open state.
-     * To be considered "open" the drawer must have settled into its fully
-     * visible state.
-     *
-     * @return true if the given drawer view is in an open state
+     * Checks if it can inflate the content view with its corresponding attribute.
+     * If this fails it wil throw an IllegalStateException.
      */
-    public boolean isDrawerOpen() {
-        return mCurrentContentState != ContentState.CLOSED;
-    }
+    private void checkForContentAttribute() {
+        if (mContentViewId == DEFAULT_ATTRIBUTE_VALUE) {
+            throw new IllegalStateException("Missing content layout. " +
+                    "Set a \"content\" tag on the content layout (in XML android:xml=\"content\"). " +
+                    "Or set the \"app:content\" attribute on the drawer layout.");
+        }
 
-//    private boolean hasPeekingDrawer() {
-//        final int childCount = getChildCount();
-//        for (int i = 0; i < childCount; i++) {
-//            final LayoutParams lp = (LayoutParams) getChildAt(i).getLayoutParams();
-//            if (lp.isPeeking) {
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
+        mContentView = mLayoutInflater.inflate(mContentViewId, this, false);
 
-    @Override
-    protected ViewGroup.LayoutParams generateDefaultLayoutParams() {
-        return new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+        if (mContentView != null) {
+            mContentView.setTag(TAG_CONTENT);
+            addView(mContentView);
+        }
     }
 
     @Override
-    protected ViewGroup.LayoutParams generateLayoutParams(ViewGroup.LayoutParams p) {
-        return p instanceof LayoutParams
-                ? new LayoutParams((LayoutParams) p)
-                : p instanceof ViewGroup.MarginLayoutParams
-                ? new LayoutParams((MarginLayoutParams) p)
-                : new LayoutParams(p);
+    protected Parcelable onSaveInstanceState() {
+        Bundle bundle = new Bundle();
+        bundle.putParcelable("superState", super.onSaveInstanceState());
+        bundle.putFloat("dragOffset", mDragOffset);
+        return bundle;
     }
 
     @Override
-    protected boolean checkLayoutParams(ViewGroup.LayoutParams p) {
-        return p instanceof LayoutParams && super.checkLayoutParams(p);
-    }
-
-    @Override
-    public ViewGroup.LayoutParams generateLayoutParams(AttributeSet attrs) {
-        return new LayoutParams(getContext(), attrs);
-    }
-
-    void cancelChildViewTouch() {
-        // Cancel child touches
-        if (!mChildrenCanceledTouch) {
-            final long now = SystemClock.uptimeMillis();
-            final MotionEvent cancelEvent = MotionEvent.obtain(now, now,
-                    MotionEvent.ACTION_CANCEL, 0.0f, 0.0f, 0);
-            final int childCount = getChildCount();
-            for (int i = 0; i < childCount; i++) {
-                getChildAt(i).dispatchTouchEvent(cancelEvent);
+    protected void onRestoreInstanceState(Parcelable state) {
+        if (state instanceof Bundle) {
+            Bundle bundle = (Bundle) state;
+            state = bundle.getParcelable("superState");
+            if (bundle.getFloat("dragOffset", 0f) > .6f) {
+                openDrawer();
             }
-            cancelEvent.recycle();
-            mChildrenCanceledTouch = true;
         }
+        super.onRestoreInstanceState(state);
     }
 
     @Override
@@ -597,9 +285,476 @@ public class CustomDrawer extends ViewGroup {
         }
     }
 
+    @Override
+    public void computeScroll() {
+        super.computeScroll();
+        if (mViewDragHelper.continueSettling(true)) {
+            ViewCompat.postInvalidateOnAnimation(this);
+        } else {
+            mDraggedXOffset = mContentView.getLeft();
+            mDraggedYOffset = mContentView.getTop();
+        }
+    }
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        final int action = MotionEventCompat.getActionMasked(ev);
+
+        switch (action) {
+            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_UP: {
+                mViewDragHelper.cancel();
+                return false;
+            }
+        }
+
+        return mViewDragHelper.shouldInterceptTouchEvent(ev);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        final int action = event.getAction();
+
+        mViewDragHelper.processTouchEvent(event);
+
+        switch (action & MotionEventCompat.ACTION_MASK) {
+            case MotionEvent.ACTION_UP: {
+                Log.e("JOE", "ACTION_UP");
+                Log.e("JOE", "mViewDragCallback.mIsPeek: " + mViewDragCallback.mIsPeek);
+
+                if (mViewDragCallback.mIsPeek) {
+                    mViewDragCallback.mIsPeek = false;
+                    closeDrawer();
+                }
+                break;
+            }
+            case MotionEvent.ACTION_CANCEL: {
+                Log.e("JOE", "ACTION_CANCEL");
+                Log.e("JOE", "mViewDragCallback.mIsPeek: " + mViewDragCallback.mIsPeek);
+
+                closeDrawer();
+                break;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Hide the the touch interceptor.
+     */
+    private void hideTouchInterceptor() {
+        if (findViewWithTag(TAG_OVERLAY) != null) {
+            findViewWithTag(TAG_OVERLAY).setVisibility(INVISIBLE);
+        }
+    }
+
+    /**
+     * Show the the touch interceptor.
+     */
+    private void showTouchInterceptor() {
+        if (findViewWithTag(TAG_OVERLAY) == null) {
+            addTouchInterceptor();
+        }
+
+        if (mContentView == null) {
+            mContentView = findViewWithTag(TAG_CONTENT);
+        }
+
+        float offset = map(mContentView.getLeft(), 0, CustomDrawer.this.getWidth() * mMarginFactor, 0, 1);
+        float scaleFactorContent = map(offset, 0, 1, mContentScaleClosed, mClickToCloseScale);
+
+        View interceptor = findViewWithTag(TAG_OVERLAY);
+
+        if (interceptor != null) {
+            interceptor.setTranslationX(mContentView.getLeft());
+            interceptor.setTranslationY(mContentView.getTop());
+            interceptor.setScaleX(scaleFactorContent);
+            interceptor.setScaleY(scaleFactorContent);
+            interceptor.setVisibility(VISIBLE);
+        }
+    }
+
+    /**
+     * Boolean to check if a touch is a click.
+     *
+     * @return Returns true if a touch is a click.
+     */
+    private boolean touchIsClick(float startX, float endX, float startY, float endY) {
+        float differenceX = Math.abs(startX - endX);
+        float differenceY = Math.abs(startY - endY);
+        return !(differenceX > MAX_CLICK_RANGE || differenceY > MAX_CLICK_RANGE);
+    }
+
+    /**
+     * Adds a touch interceptor to the layout when needed.
+     * The interceptor wil take care of touch events occurring
+     * on the content view when the drawer is open.
+     */
+    private void addTouchInterceptor() {
+        View touchInterceptor = mLayoutInflater.inflate(R.layout.duo_overlay, this, false);
+        touchInterceptor.setTag(TAG_OVERLAY);
+        touchInterceptor.setOnTouchListener(new OnTouchListener() {
+            float startX;
+            float startY;
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (mLockMode != LOCK_MODE_LOCKED_OPEN) {
+                    switch (event.getAction()) {
+                        case MotionEvent.ACTION_DOWN:
+                            startX = event.getX();
+                            startY = event.getY();
+                            break;
+                        case MotionEvent.ACTION_UP:
+                            float endX = event.getX();
+                            float endY = event.getY();
+
+                            if (touchIsClick(startX, endX, startY, endY)) {
+                                closeDrawer();
+                            }
+                            break;
+                        case MotionEvent.ACTION_MOVE:
+                            mViewDragCallback.mIsEdgeDrag = true;
+                            int pointerIndex = (event.getAction() & MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
+                            mViewDragHelper.captureChildView(mContentView, pointerIndex);
+                            break;
+                    }
+                    return true;
+                } else return true;
+            }
+        });
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            touchInterceptor.setTranslationZ(MAX_ATTRIBUTE_MULTIPLIER);
+        }
+
+        addView(touchInterceptor);
+    }
+
+    /**
+     * Disables/Enables a view and all of its child views.
+     * Leaves the toolbar enabled at all times.
+     *
+     * @param view    The view to be disabled/enabled
+     * @param enabled True or false, enabled/disabled
+     */
+    private void setViewAndChildrenEnabled(View view, boolean enabled) {
+        view.setEnabled(enabled);
+        if (view instanceof ViewGroup) {
+            ViewGroup viewGroup = (ViewGroup) view;
+            for (int i = 0; i < viewGroup.getChildCount(); i++) {
+                View child = viewGroup.getChildAt(i);
+                if (child instanceof Toolbar) {
+                    setViewAndChildrenEnabled(child, true);
+                } else {
+                    setViewAndChildrenEnabled(child, enabled);
+                }
+            }
+        }
+    }
+
+    /**
+     * Kept for compatibility. {@see #isDrawerMenuOpen()}.
+     *
+     * @param gravity Ignored
+     * @return true if the drawer view in in an open state
+     */
+    @SuppressWarnings("UnusedParameters")
+    public boolean isDrawerOpen(int gravity) {
+        return isDrawerOpen();
+    }
+
+    /**
+     * Check if the drawer view is currently in an open state.
+     * To be considered "open" the drawer must have settled into its fully
+     * visible state.
+     *
+     * @return true if the drawer view is in an open state
+     */
+    public boolean isDrawerOpen() {
+        return mDragOffset == 1;
+    }
+
+    /**
+     * Kept for compatibility. {@see #openDrawer()}.
+     *
+     * @param gravity Ignored
+     */
+    @SuppressWarnings("UnusedParameters")
+    public void openDrawer(int gravity) {
+        openDrawer();
+    }
+
+    /**
+     * Open the drawer animated.
+     */
+    public void openDrawer() {
+        int drawerWidth = (int) (getWidth() * mMarginFactor);
+        if (drawerWidth == 0) {
+            getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                @Override
+                public boolean onPreDraw() {
+                    CustomDrawer.this.getViewTreeObserver().removeOnPreDrawListener(this);
+                    if (mViewDragHelper.smoothSlideViewTo(mContentView, ((int) (getWidth() * mMarginFactor)), mContentView.getTop())) {
+                        ViewCompat.postInvalidateOnAnimation(CustomDrawer.this);
+                    }
+                    return false;
+                }
+            });
+        } else {
+            if (mViewDragHelper.smoothSlideViewTo(mContentView, drawerWidth, mContentView.getTop())) {
+                ViewCompat.postInvalidateOnAnimation(CustomDrawer.this);
+            }
+        }
+    }
+
+    /**
+     * Kept for compatibility. {@see #closeDrawer()}.
+     *
+     * @param gravity Ignored
+     */
+    @SuppressWarnings("UnusedParameters")
+    public void closeDrawer(int gravity) {
+        closeDrawer();
+    }
+
+    /**
+     * Close the drawer animated.
+     */
+    public void closeDrawer() {
+        if (mContentView == null) {
+            mContentView = findViewWithTag(TAG_CONTENT);
+        }
+
+        if (mContentView != null) {
+            if (mViewDragHelper.smoothSlideViewTo(mContentView, 0 - mContentView.getPaddingLeft(), mContentView.getTop())) {
+                ViewCompat.postInvalidateOnAnimation(CustomDrawer.this);
+            }
+        }
+    }
+
+    /**
+     * Kept for compatibility. {@see #isDrawerMenuVisible()}.
+     *
+     * @param gravity Ignored.
+     */
+    @SuppressWarnings("UnusedParameters")
+    public boolean isDrawerVisible(int gravity) {
+        return isDrawerVisible();
+    }
+
+    /**
+     * Check if the drawer is visible on the screen.
+     *
+     * @return true if the drawer is visible.
+     */
+    public boolean isDrawerVisible() {
+        return mDragOffset > 0;
+    }
+
+    /**
+     * Enable or disable interaction the drawer.
+     * <p>
+     * This allows the application to restrict the user's ability to open or close
+     * any drawer within this layout. DuloDrawerLayout will still respond to calls to
+     * {@link #openDrawer()}, {@link #closeDrawer()} and friends if a drawer is locked.
+     * <p>
+     * Locking drawers open or closed will implicitly open or close
+     * any drawers as appropriate.
+     *
+     * @param lockMode The new lock mode. One of {@link #LOCK_MODE_UNLOCKED},
+     *                 {@link #LOCK_MODE_LOCKED_CLOSED} or {@link #LOCK_MODE_LOCKED_OPEN}.
+     * @see #LOCK_MODE_UNLOCKED
+     * @see #LOCK_MODE_LOCKED_CLOSED
+     * @see #LOCK_MODE_LOCKED_OPEN
+     */
+    public void setDrawerLockMode(@LockMode int lockMode) {
+        mLockMode = lockMode;
+        switch (lockMode) {
+            case LOCK_MODE_LOCKED_CLOSED:
+                mViewDragHelper.cancel();
+                closeDrawer();
+                break;
+            case LOCK_MODE_LOCKED_OPEN:
+                mViewDragHelper.cancel();
+                openDrawer();
+                break;
+            case LOCK_MODE_UNLOCKED:
+                break;
+        }
+    }
+
+    /**
+     * Returns the menu view.
+     *
+     * @return The current menu view.
+     */
+    public View getMenuView() {
+        if (mMenuView == null) {
+            mMenuView = this.findViewWithTag(TAG_MENU);
+        }
+        return mMenuView;
+    }
+
+    /**
+     * Sets the menu view.
+     *
+     * @param menuView View that becomes the menu view.
+     */
+    public void setMenuView(View menuView) {
+        if (menuView.getParent() != null) {
+            throw new IllegalStateException("Your menu view already has a parent. Please make sure your menu view does not have a parent.");
+        }
+
+        mMenuView = this.findViewWithTag(TAG_MENU);
+        if (mMenuView != null) {
+            this.removeView(mMenuView);
+        }
+        mMenuView = menuView;
+        mMenuView.setTag(TAG_MENU);
+        addView(mMenuView);
+        invalidate();
+        requestLayout();
+    }
+
+    /**
+     * Returns the content view.
+     *
+     * @return The current content view.
+     */
+    public View getContentView() {
+        if (mContentView == null) {
+            mContentView = this.findViewWithTag(TAG_CONTENT);
+        }
+        return mContentView;
+    }
+
+    /**
+     * Sets the content view.
+     *
+     * @param contentView View that becomes the content view.
+     */
+    public void setContentView(View contentView) {
+        if (contentView.getParent() != null) {
+            throw new IllegalStateException("Your content view already has a parent. Please make sure your content view does not have a parent.");
+        }
+
+        mContentView = this.findViewWithTag(TAG_CONTENT);
+        if (mContentView != null) {
+            this.removeView(mContentView);
+        }
+        mContentView = contentView;
+        mContentView.setTag(TAG_CONTENT);
+        addView(mContentView);
+        invalidate();
+        requestLayout();
+    }
+
+    /**
+     * Set the scale of the content when the drawer is closed. 1.0f is the original size.
+     *
+     * @param contentScaleClosed Scale of the content if the drawer is closed.
+     */
+    public void setContentScaleClosed(float contentScaleClosed) {
+        mContentScaleClosed = contentScaleClosed;
+        invalidate();
+        requestLayout();
+    }
+
+    /**
+     * Set the scale of the content when the drawer is open. 1.0f is the original size.
+     *
+     * @param contentScaleOpen Scale of the content when the drawer is open.
+     */
+    public void setContentScaleOpen(float contentScaleOpen) {
+        mContentScaleOpen = contentScaleOpen;
+        invalidate();
+        requestLayout();
+    }
+
+    /**
+     * Set the scale of the menu when the drawer is closed. 1.0f is the original size.
+     *
+     * @param menuScaleClosed Scale of the menu when the drawer is closed.
+     */
+    public void setMenuScaleClosed(float menuScaleClosed) {
+        mMenuScaleClosed = menuScaleClosed;
+        invalidate();
+        requestLayout();
+    }
+
+    /**
+     * Set the scale of the menu when the drawer is open. 1.0f is the original size.
+     *
+     * @param menuScaleOpen Scale of the menu when the drawer is open.
+     */
+    public void setMenuScaleOpen(float menuScaleOpen) {
+        mMenuScaleOpen = menuScaleOpen;
+        invalidate();
+        requestLayout();
+    }
+
+    /**
+     * Set the scale of the click to close surface when the drawer is open. 0.7f is the original scaling.
+     *
+     * @param clickToCloseScale Scale of the click to close surface when the drawer is open.
+     */
+    public void setClickToCloseScale(float clickToCloseScale) {
+        mClickToCloseScale = clickToCloseScale;
+        invalidate();
+        requestLayout();
+    }
+
+    /**
+     * Set the alpha of the menu when the drawer is closed.
+     * 0.0f is transparent, 1.0f is completely visible.
+     *
+     * @param menuAlphaClosed Alpha of the menu when the drawer is closed.
+     */
+    public void setMenuAlphaClosed(float menuAlphaClosed) {
+        mMenuAlphaClosed = menuAlphaClosed;
+        invalidate();
+        requestLayout();
+    }
+
+    /**
+     * Set the alpha of the menu when the drawer is open.
+     * 0.0f is transparent, 1.0f is completely visible.
+     *
+     * @param menuAlphaOpen Alpha of the menu when the drawer is open.
+     */
+    public void setMenuAlphaOpen(float menuAlphaOpen) {
+        mMenuAlphaOpen = menuAlphaOpen;
+        invalidate();
+        requestLayout();
+    }
+
+    /**
+     * Set the amount of space of the content visible when the drawer is opened.
+     * 1.0f will move the drawer completely of the screen. The default value is 0.7f.
+     *
+     * @param marginFactor Amount of space of the content when drawer is open.
+     */
+    public void setMarginFactor(float marginFactor) {
+        mMarginFactor = marginFactor;
+        invalidate();
+        requestLayout();
+    }
+
+    /**
+     * Set a listener to be notified of drawer events.
+     *
+     * @param drawerListener Listener to notify when drawer events occur
+     * @see DrawerListener
+     */
+    public void setDrawerListener(DrawerListener drawerListener) {
+        mDrawerListener = drawerListener;
+    }
+
     private class ViewDragCallback extends ViewDragHelper.Callback {
-        private Edge mEdge = null;
-        private ViewDragHelper mViewDragHelper;
+        boolean mIsEdgeDrag = false;
+        boolean mIsPeek = false;
 
         private final Runnable mPeekRunnable = new Runnable() {
             @Override
@@ -608,120 +763,15 @@ public class CustomDrawer extends ViewGroup {
             }
         };
 
-        public ViewDragCallback(Edge pEdge) {
-            mEdge = pEdge;
-        }
-
-        public void setViewDragHelper(ViewDragHelper pViewDragHelper) {
-            mViewDragHelper = pViewDragHelper;
-        }
-
-        public void removeCallbacks() {
-            CustomDrawer.this.removeCallbacks(mPeekRunnable);
-        }
-
         @Override
         public boolean tryCaptureView(View child, int pointerId) {
-            return isContentView(child)
-                    && mViewDragHelper.isEdgeTouched(ViewDragHelper.EDGE_LEFT)
-                    || mViewDragHelper.isEdgeTouched(ViewDragHelper.EDGE_RIGHT);
-        }
-
-        @Override
-        public void onViewDragStateChanged(int state) {
-            updateContentState(mEdge, state, mViewDragHelper);
-        }
-
-        @Override
-        public void onViewPositionChanged(View changedView, int left, int top, int dx, int dy) {
-            mContentViewOffset = map(left, 0, CustomDrawer.this.getWidth() * mSlideMarginFactor, 0, 1);
-
-//            Log.e("JOE", "mContentViewOffset: " + mContentViewOffset);
-
-            float scaleFactorContent = map(mContentViewOffset, 0, 1, 1f, 0.7f);
-            mContentView.setScaleX(scaleFactorContent);
-            mContentView.setScaleY(scaleFactorContent);
-
-            invalidate();
-        }
-
-        @Override
-        public void onViewCaptured(View capturedChild, int activePointerId) {
-//            final LayoutParams lp = (LayoutParams) capturedChild.getLayoutParams();
-//            lp.isPeeking = false;
-        }
-
-        @Override
-        public void onViewReleased(View releasedChild, float xvel, float yvel) {
-            int settleAt = 0;
-            if (mContentViewOffset > 0.5f) {
-                settleAt = (int) (getWidth() * mSlideMarginFactor);
-            }
-            mViewDragHelper.settleCapturedViewAt(settleAt, releasedChild.getTop());
-            invalidate();
-        }
-
-        @Override
-        public void onEdgeTouched(int edgeFlags, int pointerId) {
-            Log.d("JOE", "onEdgeTouched");
-//            postDelayed(mPeekRunnable, PEEK_DELAY);
-        }
-
-        private void peekDrawer() {
-//            final View toCapture;
-//            final int childLeft;
-//            final int peekDistance = mViewDragHelper.getEdgeSize();
-//            final boolean leftEdge = mAbsGravity == Gravity.LEFT;
-//            if (leftEdge) {
-//                toCapture = findDrawerWithGravity(Gravity.LEFT);
-//                childLeft = (toCapture != null ? -toCapture.getWidth() : 0) + peekDistance;
-//            } else {
-//                toCapture = findDrawerWithGravity(Gravity.RIGHT);
-//                childLeft = getWidth() - peekDistance;
-//            }
-//            // Only peek if it would mean making the drawer more visible and the drawer isn't locked
-//            if (toCapture != null && ((leftEdge && toCapture.getLeft() < childLeft) ||
-//                    (!leftEdge && toCapture.getLeft() > childLeft)) &&
-//                    getDrawerLockMode(toCapture) == LOCK_MODE_UNLOCKED) {
-//                final LayoutParams lp = (LayoutParams) toCapture.getLayoutParams();
-//                mViewDragHelper.smoothSlideViewTo(toCapture, childLeft, toCapture.getTop());
-//                lp.isPeeking = true;
-//                invalidate();
-//                closeOtherDrawer();
-//                cancelChildViewTouch();
-//            }
-        }
-
-//        @Override
-//        public boolean onEdgeLock(int edgeFlags) {
-//            if (ALLOW_EDGE_LOCK) {
-//                final View drawer = findDrawerWithGravity(mAbsGravity);
-//                if (drawer != null && !isDrawerOpen(drawer)) {
-////                    closeDrawer(drawer);
-//                }
-//                return true;
-//            }
-//            return false;
-//        }
-
-        @Override
-        public void onEdgeDragStarted(int edgeFlags, int pointerId) {
-            super.onEdgeDragStarted(edgeFlags, pointerId);
-            Log.e("JOE", "mEdge: " + mEdge);
-            Log.e("JOE", "edgeFlags: " + edgeFlags + " | RIGHT: " + ViewDragHelper.EDGE_RIGHT + " | LEFT: " + ViewDragHelper.EDGE_LEFT);
-            Log.e("JOE", "===========================");
-            mViewDragHelper.captureChildView(mContentView, pointerId);
-        }
-
-        @Override
-        public int getViewHorizontalDragRange(View child) {
-            return CustomDrawer.this.getWidth();
+            return (mLockMode == LOCK_MODE_UNLOCKED || mLockMode == LOCK_MODE_LOCKED_OPEN) && child == mContentView && mIsEdgeDrag;
         }
 
         @Override
         public int clampViewPositionHorizontal(View child, int left, int dx) {
             if (left < 0) return 0;
-            int width = (int) (getWidth() * mSlideMarginFactor);
+            int width = (int) (getWidth() * mMarginFactor);
             if (left > width) return width;
             return left;
         }
@@ -729,6 +779,115 @@ public class CustomDrawer extends ViewGroup {
         @Override
         public int clampViewPositionVertical(View child, int top, int dy) {
             return getTopInset();
+        }
+
+        @Override
+        public void onEdgeDragStarted(int edgeFlags, int pointerId) {
+            mIsEdgeDrag = true;
+
+            if (tryCaptureView(mContentView, pointerId) && edgeFlags == ViewDragHelper.EDGE_LEFT) {
+                mViewDragHelper.captureChildView(mContentView, pointerId);
+            }
+        }
+
+        @Override
+        public void onViewCaptured(View capturedChild, int activePointerId) {
+            super.onViewCaptured(capturedChild, activePointerId);
+        }
+
+        @Override
+        public void onEdgeTouched(int edgeFlags, int pointerId) {
+            super.onEdgeTouched(edgeFlags, pointerId);
+
+            postDelayed(mPeekRunnable, 160);
+        }
+
+        private void peekDrawer() {
+            if (mContentView != null && mLockMode == LOCK_MODE_UNLOCKED) {
+                mViewDragHelper.smoothSlideViewTo(mContentView, mViewDragHelper.getEdgeSize(), mContentView.getTop());
+                mIsPeek = true;
+                invalidate();
+            }
+        }
+
+
+        @Override
+        public int getViewHorizontalDragRange(View child) {
+            return CustomDrawer.this.getMeasuredWidth();
+        }
+
+        @Override
+        public void onViewReleased(View releasedChild, float xvel, float yvel) {
+            super.onViewReleased(releasedChild, xvel, yvel);
+
+            if (xvel > 0 || xvel == 0 && mDragOffset > 0.5f) {
+                openDrawer();
+            } else {
+                closeDrawer();
+            }
+
+            mIsEdgeDrag = false;
+        }
+
+        @Override
+        public void onViewPositionChanged(View changedView, int left, int top, int dx, int dy) {
+            super.onViewPositionChanged(changedView, left, top, dx, dy);
+
+            mDragOffset = map(left, 0, CustomDrawer.this.getWidth() * mMarginFactor, 0, 1);
+
+            float scaleFactorContent = map(mDragOffset, 0, 1, mContentScaleClosed, mContentScaleOpen);
+            mContentView.setScaleX(scaleFactorContent);
+            mContentView.setScaleY(scaleFactorContent);
+
+            float scaleFactorMenu = map(mDragOffset, 0, 1, mMenuScaleClosed, mMenuScaleOpen);
+            mMenuView.setScaleX(scaleFactorMenu);
+            mMenuView.setScaleY(scaleFactorMenu);
+
+            float alphaValue = map(mDragOffset, 0, 1, mMenuAlphaClosed, mMenuAlphaOpen);
+            mMenuView.setAlpha(alphaValue);
+
+            if (mDrawerListener != null) {
+                mDrawerListener.onDrawerSlide(CustomDrawer.this, mDragOffset);
+            }
+        }
+
+        @Override
+        public void onViewDragStateChanged(int state) {
+            super.onViewDragStateChanged(state);
+
+            if (getContext().getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE
+                    && mDragOffset >= .6f) {
+                mDragOffset = 1;
+            }
+
+            mDraggedXOffset = mContentView.getLeft();
+            mDraggedYOffset = mContentView.getTop();
+
+            if (state == STATE_IDLE) {
+                if (mDragOffset == 0) {
+                    hideTouchInterceptor();
+                    setViewAndChildrenEnabled(mMenuView, false);
+
+                    if (mDrawerListener != null) {
+                        mDrawerListener.onDrawerClosed(CustomDrawer.this);
+                    }
+                } else if (mDragOffset == 1) {
+                    showTouchInterceptor();
+                    setViewAndChildrenEnabled(mMenuView, true);
+
+                    if (mDrawerListener != null) {
+                        mDrawerListener.onDrawerOpened(CustomDrawer.this);
+                    }
+                }
+            }
+
+            if (state != mDrawerState) {
+                mDrawerState = state;
+
+                if (mDrawerListener != null) {
+                    mDrawerListener.onDrawerStateChanged(state);
+                }
+            }
         }
 
         private int getTopInset() {
@@ -743,233 +902,20 @@ public class CustomDrawer extends ViewGroup {
             return result;
         }
     }
-//
-//    @Override
-//    protected void onRestoreInstanceState(Parcelable state) {
-//        final SavedState ss = (SavedState) state;
-//        super.onRestoreInstanceState(ss.getSuperState());
-//        if (ss.openDrawerGravity != Gravity.NO_GRAVITY) {
-//            final View toOpen = findDrawerWithGravity(ss.openDrawerGravity);
-//            if (toOpen != null) {
-////                openDrawer(toOpen);
-//            }
-//        }
-//        setDrawerLockMode(ss.lockModeLeft, Gravity.LEFT);
-//        setDrawerLockMode(ss.lockModeRight, Gravity.RIGHT);
-//    }
-//
-//    @Override
-//    protected Parcelable onSaveInstanceState() {
-//        final Parcelable superState = super.onSaveInstanceState();
-//        final SavedState ss = new SavedState(superState);
-//        final int childCount = getChildCount();
-//        for (int i = 0; i < childCount; i++) {
-//            final View child = getChildAt(i);
-//            if (!isDrawerView(child)) {
-//                continue;
-//            }
-//            final LayoutParams lp = (LayoutParams) child.getLayoutParams();
-//            if (lp.knownOpen) {
-//                ss.openDrawerGravity = lp.gravity;
-//                // Only one drawer can be open at a time.
-//                break;
-//            }
-//        }
-//        ss.lockModeLeft = mLockModeLeft;
-//        ss.lockModeRight = mLockModeRight;
-//        return ss;
-//    }
 
     /**
-     * State persisted across instances
+     * @hide
      */
-    protected static class SavedState extends BaseSavedState {
-        int openDrawerGravity = Gravity.NO_GRAVITY;
-        int lockModeLeft = LOCK_MODE_UNLOCKED;
-        int lockModeRight = LOCK_MODE_UNLOCKED;
-
-        public SavedState(Parcel in) {
-            super(in);
-            openDrawerGravity = in.readInt();
-        }
-
-        public SavedState(Parcelable superState) {
-            super(superState);
-        }
-
-        @Override
-        public void writeToParcel(Parcel dest, int flags) {
-            super.writeToParcel(dest, flags);
-            dest.writeInt(openDrawerGravity);
-        }
-
-        public static final Parcelable.Creator<SavedState> CREATOR =
-                new Parcelable.Creator<SavedState>() {
-                    @Override
-                    public SavedState createFromParcel(Parcel source) {
-                        return new SavedState(source);
-                    }
-
-                    @Override
-                    public SavedState[] newArray(int size) {
-                        return new SavedState[size];
-                    }
-                };
-    }
-
-    public static class LayoutParams extends ViewGroup.MarginLayoutParams {
-
-        public LayoutParams(Context c, AttributeSet attrs) {
-            super(c, attrs);
-        }
-
-        public LayoutParams(@Px int width, @Px int height) {
-            super(width, height);
-        }
-
-        public LayoutParams(MarginLayoutParams source) {
-            super(source);
-        }
-
-        public LayoutParams(ViewGroup.LayoutParams source) {
-            super(source);
-        }
-    }
-
-    class AccessibilityDelegate extends AccessibilityDelegateCompat {
-        private final Rect mTmpRect = new Rect();
-
-        @Override
-        public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfoCompat info) {
-            final AccessibilityNodeInfoCompat superNode = AccessibilityNodeInfoCompat.obtain(info);
-            super.onInitializeAccessibilityNodeInfo(host, superNode);
-            info.setSource(host);
-            final ViewParent parent = ViewCompat.getParentForAccessibility(host);
-            if (parent instanceof View) {
-                info.setParent((View) parent);
-            }
-            copyNodeInfoNoChildren(info, superNode);
-            superNode.recycle();
-            addChildrenForAccessibility(info, (ViewGroup) host);
-        }
-
-        private void addChildrenForAccessibility(AccessibilityNodeInfoCompat info, ViewGroup v) {
-            final int childCount = v.getChildCount();
-            for (int i = 0; i < childCount; i++) {
-                final View child = v.getChildAt(i);
-                if (filter(child)) {
-                    continue;
-                }
-                final int importance = ViewCompat.getImportantForAccessibility(child);
-                switch (importance) {
-                    case ViewCompat.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS:
-                        break;
-                    case ViewCompat.IMPORTANT_FOR_ACCESSIBILITY_NO:
-                        if (child instanceof ViewGroup) {
-                            addChildrenForAccessibility(info, (ViewGroup) child);
-                        }
-                        break;
-                    case ViewCompat.IMPORTANT_FOR_ACCESSIBILITY_AUTO:
-                        ViewCompat.setImportantForAccessibility(child, ViewCompat.IMPORTANT_FOR_ACCESSIBILITY_YES);
-                    case ViewCompat.IMPORTANT_FOR_ACCESSIBILITY_YES:
-                        info.addChild(child);
-                        break;
-                }
-            }
-        }
-
-        @Override
-        public boolean onRequestSendAccessibilityEvent(ViewGroup host, View child, AccessibilityEvent event) {
-            return !filter(child) && super.onRequestSendAccessibilityEvent(host, child, event);
-        }
-
-        public boolean filter(View child) {
-            return mContentView != null && mContentView != child;
-        }
-
-        /**
-         * This should really be in AccessibilityNodeInfoCompat, but there unfortunately
-         * seem to be a few elements that are not easily cloneable using the underlying API.
-         * Leave it private here as it's not general-purpose useful.
-         */
-        private void copyNodeInfoNoChildren(AccessibilityNodeInfoCompat dest, AccessibilityNodeInfoCompat src) {
-            final Rect rect = mTmpRect;
-            src.getBoundsInParent(rect);
-            dest.setBoundsInParent(rect);
-            src.getBoundsInScreen(rect);
-            dest.setBoundsInScreen(rect);
-            dest.setVisibleToUser(src.isVisibleToUser());
-            dest.setPackageName(src.getPackageName());
-            dest.setClassName(src.getClassName());
-            dest.setContentDescription(src.getContentDescription());
-            dest.setEnabled(src.isEnabled());
-            dest.setClickable(src.isClickable());
-            dest.setFocusable(src.isFocusable());
-            dest.setFocused(src.isFocused());
-            dest.setAccessibilityFocused(src.isAccessibilityFocused());
-            dest.setSelected(src.isSelected());
-            dest.setLongClickable(src.isLongClickable());
-            dest.addAction(src.getActions());
-        }
+    @IntDef({STATE_IDLE, STATE_DRAGGING, STATE_SETTLING})
+    @Retention(RetentionPolicy.SOURCE)
+    private @interface State {
     }
 
     /**
-     * Stub/no-op implementations of all methods of {@link ContentListener}.
-     * Override this if you only care about a few of the available callback methods.
+     * @hide
      */
-    public static abstract class SimpleContentListener implements ContentListener {
-        @Override
-        public void onContentSlide(float pSlideOffset) {
-
-        }
-
-        @Override
-        public void onContentOpened(ContentState pContentState) {
-
-        }
-
-        @Override
-        public void onContentClosed() {
-
-        }
-
-        @Override
-        public void onContentStateChanged(int pNewState) {
-
-        }
-    }
-
-    /**
-     * Listener for monitoring events about the content.
-     */
-    public interface ContentListener {
-        /**
-         * Called when the content's position changes.
-         *
-         * @param pSlideOffset The new offset of the content within its range, from -1 to 1.
-         */
-        void onContentSlide(float pSlideOffset);
-
-        /**
-         * Called when the content has settled in a completely open state.
-         * The drawer is interactive at this point.
-         *
-         * @param pContentState The state the content view is in.
-         *                      Either left or right.
-         */
-        void onContentOpened(ContentState pContentState);
-
-        /**
-         * Called when the content has settled in a completely closed state.
-         */
-        void onContentClosed();
-
-        /**
-         * Called when the content motion state changes. The new state will
-         * be one of {@link #STATE_IDLE}, {@link #STATE_DRAGGING} or {@link #STATE_SETTLING}.
-         *
-         * @param pNewState The new drawer motion state.
-         */
-        void onContentStateChanged(int pNewState);
+    @IntDef({LOCK_MODE_UNLOCKED, LOCK_MODE_LOCKED_CLOSED, LOCK_MODE_LOCKED_OPEN})
+    @Retention(RetentionPolicy.SOURCE)
+    private @interface LockMode {
     }
 }

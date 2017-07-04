@@ -10,11 +10,12 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import nl.psdcompany.duonavigationdrawer.views.CustomDuoDrawer;
+import nl.psdcompany.duonavigationdrawer.views.DuoDrawerLayout;
 import nl.psdcompany.duonavigationdrawer.views.DuoMenuView;
+import nl.psdcompany.duonavigationdrawer.widgets.DuoDrawerToggle;
 
 public class MainActivity extends AppCompatActivity implements DuoMenuView.OnMenuClickListener {
-    private CustomDuoDrawer mDrawerLayout;
+    private DuoDrawerLayout mDrawerLayout;
 
     private MenuAdapter mMenuAdapter;
     private ViewHolder mViewHolder;
@@ -50,15 +51,21 @@ public class MainActivity extends AppCompatActivity implements DuoMenuView.OnMen
     }
 
     private void handleDrawer() {
-        mDrawerLayout = (CustomDuoDrawer) findViewById(R.id.drawer_layout);
+        mDrawerLayout = (DuoDrawerLayout) findViewById(R.id.drawer_layout);
+        DuoDrawerToggle drawerToggle = new DuoDrawerToggle(this, mDrawerLayout, mViewHolder.mToolbar,
+                R.string.navigation_drawer_open,
+                R.string.navigation_drawer_close);
+
+        mDrawerLayout.setDrawerListener(drawerToggle);
+        drawerToggle.syncState();
         setSupportActionBar(mViewHolder.mToolbar);
     }
 
     private void handleMenu() {
         mMenuAdapter = new MenuAdapter(mTitles);
 
-//        mViewHolder.mDuoMenuView.setOnMenuClickListener(this);
-//        mViewHolder.mDuoMenuView.setAdapter(mMenuAdapter);
+        mViewHolder.mDuoMenuView.setOnMenuClickListener(this);
+        mViewHolder.mDuoMenuView.setAdapter(mMenuAdapter);
     }
 
     private void goToFragment(Fragment fragment, boolean addToBackStack) {
@@ -97,16 +104,16 @@ public class MainActivity extends AppCompatActivity implements DuoMenuView.OnMen
         }
 
         // Close the drawer
-//        mDrawerLayout.closeDrawer(Gravity.LEFT);
+        mDrawerLayout.closeDrawer(DuoDrawerLayout.Edge.START);
     }
 
     private class ViewHolder {
-//        private DuoMenuView mDuoMenuView;
+        private DuoMenuView mDuoMenuView;
         private Toolbar mToolbar;
 
         ViewHolder() {
             mToolbar = (Toolbar) findViewById(R.id.toolbar);
-//            mDuoMenuView = (DuoMenuView) findViewById(R.id.menu);
+            mDuoMenuView = (DuoMenuView) findViewById(R.id.menu);
         }
     }
 }

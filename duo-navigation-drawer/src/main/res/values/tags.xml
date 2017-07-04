@@ -1,4 +1,5 @@
 <resources>
-    <string name="tag_menu">duo_side_menu</string>
-    <string name="tag_content">content</string>
+    <string name="tag_nav_menu">duo_nav_drawer_menu</string>
+    <string name="tag_content">duo_content</string>
+    <string name="tag_side_menu">duo_side_menu</string>
 </resources>
