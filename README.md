@@ -162,6 +162,9 @@ This value is used to calculate how much of the content should be visible when t
 ```xml
 app:marginFactor="0.7"
 ```
+## Apps using the DuoNavigationDrawer
+
+* Coming soon
 
 ## Developed By
 
