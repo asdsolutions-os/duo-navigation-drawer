@@ -166,9 +166,9 @@ app:marginFactor="0.7"
 
 * Coming soon
 
-## Developed By
+## Developed By [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](http://www.paypal.me/alexanderpot)
 
-* Alexander Pot - <alexander.dpot@gmail.com> - [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](http://www.paypal.me/alexanderpot)
+* Alexander Pot - <alexander.dpot@gmail.com>
 
 
 ## License
