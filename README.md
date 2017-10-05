@@ -168,7 +168,7 @@ app:marginFactor="0.7"
 
 ## Developed By
 
-* Alexander Pot - <alexander.dpot@gmail.com> - [Donate](paypal.me/alexanderpot "PayPal")
+* Alexander Pot - <alexander.dpot@gmail.com> - [Donate](http://www.paypal.me/alexanderpot "PayPal")
 
 
 ## License
