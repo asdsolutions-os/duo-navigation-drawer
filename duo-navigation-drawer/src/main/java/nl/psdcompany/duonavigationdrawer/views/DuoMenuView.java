@@ -90,7 +90,7 @@ public class DuoMenuView extends RelativeLayout {
             @Override
             public void onChanged() {
                 super.onChanged();
-
+                handleOptions();
                 postInvalidate();
                 requestLayout();
             }
