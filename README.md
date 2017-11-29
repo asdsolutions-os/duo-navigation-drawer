@@ -25,7 +25,7 @@ repositories {
 }
 
 dependencies {
-    compile 'nl.psdcompany:duo-navigation-drawer:2.0.6'
+    compile 'nl.psdcompany:duo-navigation-drawer:2.0.7'
 }
 ```
 
@@ -35,7 +35,7 @@ Or Maven:
 <dependency>
   <groupId>nl.psdcompany</groupId>
   <artifactId>duo-navigation-drawer</artifactId>
-  <version>2.0.6</version>
+  <version>2.0.7</version>
   <type>pom</type>
 </dependency>
 ```
@@ -162,8 +162,11 @@ This value is used to calculate how much of the content should be visible when t
 ```xml
 app:marginFactor="0.7"
 ```
+## Apps using the DuoNavigationDrawer
 
-## Developed By
+* Coming soon
+
+## Developed By [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](http://www.paypal.me/alexanderpot)
 
 * Alexander Pot - <alexander.dpot@gmail.com>
 
