@@ -3,6 +3,7 @@ package nl.psdcompany.duonavigationdrawer.views;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -159,7 +160,7 @@ public class DuoDrawerLayout extends RelativeLayout {
     }
 
     private float map(float x, float inMin, float inMax, float outMin, float outMax) {
-        return (x - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+        return (x - inMin) * (outMax - outMin) / ((int) inMax - inMin) + outMin;
     }
 
     @Override
@@ -731,7 +732,7 @@ public class DuoDrawerLayout extends RelativeLayout {
         @Override
         public int clampViewPositionHorizontal(View child, int left, int dx) {
             if (left < 0) return 0;
-            int width = (int) (getWidth() * mMarginFactor);
+            int width = (int) (getWidth() * mMarginFactor);//
             if (left > width) return width;
             return left;
         }
