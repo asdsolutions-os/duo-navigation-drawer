@@ -169,10 +169,16 @@ app:marginFactor="0.7"
 
 Feel free to apply your app to the list. By sending me an email with a link to your app in the play store.
 
-## Developed By [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](http://www.paypal.me/alexanderpot)
+## Developed By
 
 * Alexander Pot - <alexander.dpot@gmail.com>
 
+## Donations
+If you'd like to support DuoNavigationDrawer development, you could make some donations here:
+
+* [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](http://www.paypal.me/alexanderpot)
+
+Thank you very much in advance!
 
 ## License
 
