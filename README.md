@@ -167,7 +167,7 @@ app:marginFactor="0.7"
 * [Bagels & Beans](https://play.google.com/store/apps/details?id=nl.dtt.bagelsbeans)
 * [Hebban](https://play.google.com/store/apps/details?id=nl.dtt.hebban)
 
-Feel free to apply your app to the list. By sending me an email with a link to your app in the play store.
+Feel free to apply your app to the list by sending me an email with a link to your app in the play store.
 
 ## Developed By
 
