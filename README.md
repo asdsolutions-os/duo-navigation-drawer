@@ -167,6 +167,8 @@ app:marginFactor="0.7"
 * [Bagels & Beans](https://play.google.com/store/apps/details?id=nl.dtt.bagelsbeans)
 * [Hebban](https://play.google.com/store/apps/details?id=nl.dtt.hebban)
 
+Feel free to apply your app to the list. By sending me an email with a link to your app in the play store.
+
 ## Developed By [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](http://www.paypal.me/alexanderpot)
 
 * Alexander Pot - <alexander.dpot@gmail.com>
