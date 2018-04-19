@@ -164,7 +164,8 @@ app:marginFactor="0.7"
 ```
 ## Apps using the DuoNavigationDrawer
 
-* Coming soon
+* [Bagels & Beans](https://play.google.com/store/apps/details?id=nl.dtt.bagelsbeans)
+* [Hebban](https://play.google.com/store/apps/details?id=nl.dtt.hebban)
 
 ## Developed By [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](http://www.paypal.me/alexanderpot)
 
