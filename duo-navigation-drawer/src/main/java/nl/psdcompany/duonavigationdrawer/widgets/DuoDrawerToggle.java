@@ -11,24 +11,25 @@ import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
-import android.support.annotation.StringRes;
-import android.support.v4.view.GravityCompat;
-import android.support.v7.graphics.drawable.DrawerArrowDrawable;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.annotation.StringRes;
+import androidx.core.view.GravityCompat;
+import androidx.appcompat.graphics.drawable.DrawerArrowDrawable;
+import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 
+import androidx.drawerlayout.widget.DrawerLayout;
 import nl.psdcompany.duonavigationdrawer.views.DuoDrawerLayout;
 
-import static android.support.v4.widget.DrawerLayout.DrawerListener;
-import static android.support.v4.widget.DrawerLayout.OnClickListener;
+import static androidx.drawerlayout.widget.DrawerLayout.DrawerListener;
+import static androidx.drawerlayout.widget.DrawerLayout.OnClickListener;
 
 /**
  * This class provides a handy way to tie together the functionality of
- * {@link android.support.v4.widget.DrawerLayout} and the framework <code>ActionBar</code> to
+ * {@link DrawerLayout} and the framework <code>ActionBar</code> to
  * implement the recommended design for navigation drawers.
  * <p>
  * <p>To use <code>DuoDrawerToggle</code>, create one in your Activity and call through
@@ -52,7 +53,7 @@ import static android.support.v4.widget.DrawerLayout.OnClickListener;
  * <p>
  * <p>
  * You can customize the the animated toggle by defining the
- * {@link android.support.v7.appcompat.R.styleable#DrawerArrowToggle drawerArrowStyle} in your
+ * {@link androidx.appcompat.appcompat.R.styleable#DrawerArrowToggle drawerArrowStyle} in your
  * ActionBar theme.
  */
 public class DuoDrawerToggle implements DrawerListener {
@@ -123,7 +124,7 @@ public class DuoDrawerToggle implements DrawerListener {
     /**
      * Construct a new DuoDrawerToggle.
      * <p>
-     * <p>The given {@link Activity} will be linked to the specified {@link android.support.v4.widget.DrawerLayout} and
+     * <p>The given {@link Activity} will be linked to the specified {@link DrawerLayout} and
      * its Actionbar's Up button will be set to a custom drawable.
      * <p>This drawable shows a Hamburger icon when drawer is closed and an arrow when drawer
      * is open. It animates between these two states as the drawer opens.</p>
@@ -148,7 +149,7 @@ public class DuoDrawerToggle implements DrawerListener {
     /**
      * Construct a new DuoDrawerToggle with a Toolbar.
      * <p>
-     * The given {@link Activity} will be linked to the specified {@link android.support.v4.widget.DrawerLayout} and
+     * The given {@link Activity} will be linked to the specified {@link DrawerLayout} and
      * the Toolbar's navigation icon will be set to a custom drawable. Using this constructor
      * will set Toolbar's navigation click listener to toggle the drawer when it is clicked.
      * <p>

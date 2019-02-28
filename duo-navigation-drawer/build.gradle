@@ -14,7 +14,7 @@ ext {
     siteUrl = 'https://github.com/PSD-Company/duo-navigation-drawer'
     gitUrl = 'https://github.com/PSD-Company/duo-navigation-drawer.git'
 
-    libraryVersion = '2.0.8'
+    libraryVersion = '3.0.0'
 
     developerId = 'alexander-psd'
     developerName = 'Alexander Pot'
@@ -26,15 +26,14 @@ ext {
 }
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 28
 
     defaultConfig {
         minSdkVersion 15
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
@@ -46,11 +45,11 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    implementation 'com.android.support:appcompat-v7:27.1.1'
+
     testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.2-alpha01'
+
+    implementation 'androidx.appcompat:appcompat:1.1.0-alpha02'
 }
 
 apply from: 'https://raw.githubusercontent.com/Alexander-1504/JCenter/master/installv1.gradle'

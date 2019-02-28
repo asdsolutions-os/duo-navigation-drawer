@@ -5,9 +5,10 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.view.ViewPager;
+import androidx.fragment.app.Fragment;
+import androidx.core.content.ContextCompat;
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,7 +35,7 @@ public class MainFragment extends Fragment {
         return view;
     }
 
-    private class PagerAdapter extends android.support.v4.view.PagerAdapter {
+    private class PagerAdapter extends androidx.viewpager.widget.PagerAdapter {
 
         @Override
         public int getCount() {
