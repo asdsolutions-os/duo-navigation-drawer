@@ -6,6 +6,10 @@ the Activity, this lets the content slide away and reveal a menu below it.
 
 By default it applies a scaling effect on the content and menu.
 
+### AndroidX
+
+If you're still using legacy Android Support libraries you can use v2.0.8. AndroidX is supported by default since v3.0.0.
+
 ## Demo
 [![Demo CountPages alpha](https://j.gifs.com/vgyrrV.gif)][2]
 
