@@ -6,6 +6,10 @@ the Activity, this lets the content slide away and reveal a menu below it.
 
 By default it applies a scaling effect on the content and menu.
 
+### AndroidX
+
+If you're still using legacy Android Support libraries you can use v2.0.8. AndroidX is supported by default since v3.0.0.
+
 ## Demo
 [![Demo CountPages alpha](https://j.gifs.com/vgyrrV.gif)][2]
 
@@ -25,7 +29,7 @@ repositories {
 }
 
 dependencies {
-    compile 'nl.psdcompany:duo-navigation-drawer:2.0.8'
+    compile 'nl.psdcompany:duo-navigation-drawer:3.0.0'
 }
 ```
 
@@ -35,7 +39,7 @@ Or Maven:
 <dependency>
   <groupId>nl.psdcompany</groupId>
   <artifactId>duo-navigation-drawer</artifactId>
-  <version>2.0.8</version>
+  <version>3.0.0</version>
   <type>pom</type>
 </dependency>
 ```
